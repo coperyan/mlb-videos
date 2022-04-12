@@ -1,11 +1,17 @@
-# mlb_worst_calls
+# MLB - Missed Calls Bot
 
-## Download Statcast Data for previous day
+## Steps
 
-## Find worst umpire calls
+1. Download Statcast Data for previous day
+2. Restrict data to balls & called strikes
+3. Pass to analysis .py to calculate miss
+   - Sampling to determine typical misses
+   - Horizontal / vertical misses
+4. Download clips of each play from the MLB Video Room
+5. Stitch videos together into a compilation
 
-## Download videos from MLB video room
+## Packages
 
-## Create compilation video
-
-## Upload to YouTube?
+- Pandas
+- Tqdm
+- Moviepy
