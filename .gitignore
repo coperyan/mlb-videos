@@ -1,0 +1,12 @@
+
+#Cache / Mac stuff
+*.pyc
+*__pycache__/*
+*.DS_Store
+
+#Secret
+queries/
+
+#Video/Audio
+*.mp4
+*.mp3
