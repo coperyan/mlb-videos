@@ -2,5 +2,232 @@
   "statcast": {
     "request_url": "https://baseballsavant.mlb.com/statcast_search/csv?all=true&hfPT=&hfAB=&hfBBT=&hfPR=&hfZ=&stadium=&hfBBL=&hfNewZones=&hfGT=R%7CPO%7CS%7C=&hfSea=&hfSit=&player_type=pitcher&hfOuts=&opponent=&pitcher_throws=&batter_stands=&hfSA=&game_date_gt={start_date}&game_date_lt={end_date}&team=&position=&hfRO=&home_road=&hfFlag=&metric_1=&hfInn=&min_pitches=0&min_results=0&group_by=name&sort_col=pitches&player_event_sort=h_launch_speed&sort_order=desc&min_abs=0&type=details&",
     "fill_cols": ["plate_x", "plate_z", "sz_bot", "sz_top"]
+  },
+  "helpers": {
+    "date_format": "%Y-%m-%d",
+    "players_url": "https://raw.githubusercontent.com/chadwickbureau/register/master/data/people.csv",
+    "player_cols": [
+      "name_last",
+      "name_first",
+      "key_mlbam",
+      "key_retro",
+      "key_bbref",
+      "key_fangraphs",
+      "mlb_played_first",
+      "mlb_played_last"
+    ],
+    "players_path": "data/players.csv"
+  },
+  "videos": {
+    "query_path": "queries/query_request.txt",
+    "clip_path": "queries/clip_request.txt",
+    "chunk_size": 1024,
+    "query_suffix": "Order By Timestamp DESC",
+    "local_save_dir": "downloads",
+    "params": [
+      {
+        "param_name": "player_id",
+        "param_url": "PlayerId",
+        "type": "int",
+        "equalsct": 2
+      },
+      {
+        "param_name": "batter_id",
+        "param_url": "BatterId",
+        "type": "int",
+        "equalsct": 1
+      },
+      {
+        "param_name": "pitcher_id",
+        "param_url": "PitcherId",
+        "type": "int",
+        "equalsct": 1
+      },
+      {
+        "param_name": "date",
+        "param_url": "Date",
+        "type": "str",
+        "equalsct": 1
+      },
+      {
+        "param_name": "date_range",
+        "param_url": "Date",
+        "type": "str",
+        "equalsct": 1
+      },
+      {
+        "param_name": "season",
+        "param_url": "Season",
+        "type": "int",
+        "equalsct": 1
+      },
+      {
+        "param_name": "team",
+        "param_url": "Team",
+        "type": "int",
+        "equalsct": 1
+      },
+      {
+        "param_name": "inning",
+        "param_url": "Inning",
+        "type": "int",
+        "equalsct": 1
+      },
+      {
+        "param_name": "top_bottom",
+        "param_url": "TopBottom",
+        "type": "str",
+        "equalsct": 1
+      },
+      {
+        "param_name": "outs",
+        "param_url": "Outs",
+        "type": "int",
+        "equalsct": 1
+      },
+      {
+        "param_name": "balls",
+        "param_url": "Balls",
+        "type": "int",
+        "equalsct": 1
+      },
+      {
+        "param_name": "strikes",
+        "param_url": "Strikes",
+        "type": "int",
+        "equalsct": 1
+      },
+      {
+        "param_name": "hit_result",
+        "param_url": "HitResult",
+        "type": "str",
+        "equalsct": 1
+      },
+      {
+        "param_name": "pitch_result",
+        "param_url": "PitchResult",
+        "type": "str",
+        "equalsct": 1
+      },
+      {
+        "param_name": "content_tags",
+        "param_url": "ContentTags",
+        "type": "str",
+        "equalsct": 1
+      },
+      {
+        "param_name": "pitch_type",
+        "param_url": "PitchType",
+        "type": "str",
+        "equalsct": 1
+      },
+      {
+        "param_name": "pitch_speed",
+        "param_url": "PitchSpeed",
+        "type": "int",
+        "equalsct": 1
+      },
+      {
+        "param_name": "pitch_zone",
+        "param_url": "GameDayPitchZone",
+        "type": "int",
+        "equalsct": 1
+      }
+    ],
+    "headers": {
+      "clip": {
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:92.0) Gecko/20100101 Firefox/92.0",
+        "Accept": "*/*",
+        "Accept-Language": "en-US,en;q=0.5",
+        "Content-Type": "application/json",
+        "Connection": "keep-alive",
+        "Origin": "https://www.mlb.com",
+        "Referer": "https://www.mlb.com",
+        "Sec-Fetch-Dest": "empty",
+        "Sec-Fetch-Mode": "cors",
+        "Sec-Fetch-Site": "same-site",
+        "TE": "trailers"
+      },
+      "query": {
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:92.0) Gecko/20100101 Firefox/92.0",
+        "Accept": "*/*",
+        "Accept-Language": "en-US,en;q=0.5",
+        "Content-Type": "application/json",
+        "Connection": "keep-alive",
+        "Origin": "https://www.mlb.com",
+        "Referer": "https://www.mlb.com",
+        "Sec-Fetch-Dest": "empty",
+        "Sec-Fetch-Mode": "cors",
+        "Sec-Fetch-Site": "same-site",
+        "TE": "trailers"
+      },
+      "download": {
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:92.0) Gecko/20100101 Firefox/92.0",
+        "Accept": "*/*",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Accept-Language": "en-US,en;q=0.5",
+        "Connection": "keep-alive",
+        "Origin": "https://www.mlb.com",
+        "Referer": "https://www.mlb.com",
+        "Sec-Fetch-Dest": "empty",
+        "Sec-Fetch-Mode": "cors",
+        "Sec-Fetch-Site": "same-site"
+      }
+    },
+    "responses": {
+      "query": {
+        "keys": ["data", "search", "plays"]
+      },
+      "clip": {
+        "keys": ["data", "mediaPlayback"]
+      }
+    },
+
+    "feed_types": {
+      "best": [
+        "CMS_highBit",
+        "CMS_mp4Avc",
+        "NETWORK_mp4Avc",
+        "HOME_mp4Avc",
+        "AWAY_mp4Avc"
+      ],
+      "opt": [
+        "CMS_mp4Avc",
+        "NETWORK_mp4Avc",
+        "HOME_mp4Avc",
+        "AWAY_mp4Avc",
+        "CMS_highBit"
+      ],
+      "home": [
+        "HOME_mp4Avc",
+        "NETWORK_mp4Avc",
+        "CMS_mp4Avc",
+        "AWAY_mp4Avc",
+        "CMS_highBit"
+      ],
+      "away": [
+        "AWAY_mp4Avc",
+        "NETWORK_mp4Avc",
+        "CMS_mp4Avc",
+        "HOME_mp4Avc",
+        "CMS_highBit"
+      ]
+    }
+  },
+  "ump_calls": {
+    "avg_error": 0.25,
+    "sample": 10000,
+    "ball_radius": 0.12,
+    "prob_req": 90,
+    "zone_radius": 0.83,
+    "calls": ["called_strike", "ball"],
+    "return_cols": [
+      "horizontal_miss_type",
+      "horizontal_miss",
+      "vertical_miss_type",
+      "vertical_miss",
+      "total_miss_type",
+      "total_miss"
+    ]
   }
 }
