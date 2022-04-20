@@ -23,7 +23,7 @@ class VideoCompilation:
     def create_comp(self):
         """
         """
-        self.comp = concatenate_videoclips(self.clips)
+        self.comp = concatenate_videoclips(self.clips,method='compose')
 
     def render_comp(self):
         """
