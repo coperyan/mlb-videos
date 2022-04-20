@@ -1,5 +1,5 @@
 import os
-from moviepy.editor import VideoFileClip, concatenate_videoclips
+from moviepy.editor import VideoFileClip, concatenate_videoclips, clips_array
 
 class VideoCompilation:
     def __init__(self,dt):
@@ -17,7 +17,7 @@ class VideoCompilation:
         """
         """
         self.clips = [
-            VideoFileClip(x) for x in self.clip_list
+            VideoFileClip(x,fps_source='fps') for x in self.clip_list
         ]
 
     def create_comp(self):
@@ -28,4 +28,4 @@ class VideoCompilation:
     def render_comp(self):
         """
         """
-        self.comp.write_videofile('downloads/final.mp4')
+        self.comp.write_videofile('downloads/final.mp4',fps=30)
