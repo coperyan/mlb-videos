@@ -229,5 +229,9 @@
       "total_miss_type",
       "total_miss"
     ]
+  },
+  "twitter": {
+    "media_endpoint_url": "https://upload.twitter.com/1.1/media/upload.json",
+    "post_tweet_url": "https://api.twitter.com/1.1/statuses/update.json"
   }
 }
