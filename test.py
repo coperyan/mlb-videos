@@ -17,7 +17,7 @@ if purge_files:
     for x in os.listdir('downloads'):
         os.remove(os.path.join('downloads',x))
 
-yesterday = (datetime.now() - timedelta(days=1)).strftime(CONFIG['helpers']['date_format'])
+yesterday = (datetime.now() - timedelta(days=2)).strftime(CONFIG['helpers']['date_format'])
 
 statcast = StatcastClient(start_date=yesterday,end_date=yesterday)
 statcast_df = statcast.get_df()
