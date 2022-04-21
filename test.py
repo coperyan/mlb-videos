@@ -2,7 +2,7 @@ import os
 import json
 from datetime import datetime, timedelta
 
-os.chdir('/Users/rcope/Desktop/Dev/mlb_videos')
+os.chdir('C:/Users/Ryan.Cope/Desktop/Dev/mlb_videos')
 
 from Statcast import StatcastClient
 from StatcastVideo import StatcastVideos
