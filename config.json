@@ -18,6 +18,10 @@
     ],
     "players_path": "data/players.csv"
   },
+  "players": {
+    "api_url": "https://statsapi.mlb.com/api/v1/people/{id}",
+    "site_url": "https://www.mlb.com/player/{ns}"
+  },
   "videos": {
     "query_path": "queries/query_request.txt",
     "clip_path": "queries/clip_request.txt",
@@ -229,6 +233,19 @@
       "total_miss_type",
       "total_miss"
     ]
+  },
+  "games": {
+    "url": "https://statsapi.mlb.com/api/v1.1/game/{game_pk}/feed/live",
+    "routes": {
+      "metadata": ["metaData"],
+      "game": ["gameData", "game"],
+      "game_date": ["gameData", "datetime"],
+      "game_status": ["gameData", "status"],
+      "teams": ["gameData", "teams"],
+      "players": ["gameData", "players"],
+      "venue": ["gameData", "venue"],
+      "umpires": ["liveData", "boxscore", "officials"]
+    }
   },
   "twitter": {
     "media_endpoint_url": "https://upload.twitter.com/1.1/media/upload.json",
