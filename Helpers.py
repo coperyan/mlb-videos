@@ -38,10 +38,17 @@ DATE_FORMATS = [
     (re.compile(r'^\d{4}-\d{1,2}-\d{1,2}T\d{2}:\d{2}:\d{2}.\d{1,6}Z$'), '%Y-%m-%dT%H:%M:%S.%fZ'),
 ]
 
+def get_player_name(id):
+    """
+    """
+    req = requests.get(CONFIG['players']['api_url'].format(id = id))
+    name = req.json()['players'][0]['fullName']
+    return name
+
 def get_player_twitter(id):
     """
     """
-    api_req = requests.url(CONFIG['players']['api_url'].format(id = id))
+    api_req = requests.get(CONFIG['players']['api_url'].format(id = id))
     ns = api_req.json()['players'][0]['nameSlug']
     site_req = requests.url(CONFIG['players']['site_url'].format(ns = ns))
     soup = BeautifulSoup(site_req.text)
