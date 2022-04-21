@@ -11,3 +11,6 @@ creds/
 #Video/Audio
 *.mp4
 *.mp3
+
+#CSV downloads
+downloads/*.csv
