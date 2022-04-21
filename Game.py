@@ -6,7 +6,7 @@ import pandas as pd
 with open('config.json') as f:
     CONFIG = json.load(f)
 
-GAME_URL = CONFIG['games']['game_url']
+GAME_URL = CONFIG['games']['url']
 GAME_ROUTES = CONFIG['games']['routes']
 
 class Game:
@@ -30,9 +30,9 @@ class Game:
     def get_data(self, data):
         """
         """
-        r_json = self.json
+        r_json = self.json.copy()
         try:
-            for key in CONFIG['game_data'][data]:
+            for key in GAME_ROUTES[data]:
                 r_json = r_json.get(key,{})
         except:
             print('Issue parsing JSON, returning full..')
