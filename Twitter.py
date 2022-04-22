@@ -18,8 +18,13 @@ API_KEY_SECRET = CREDS['api_key_secret']
 ACCESS_TOKEN = CREDS['access_token']
 ACCESS_TOKEN_SECRET = CREDS['access_token_secret']
 
-test_video = 'downloads/final.mp4'
-tweet_text = 'Here are the worst calls from 4/17/21. Misses are at least 3+ " based on our calculations.'
+test_video = 'downloads/test.mp4'
+tweet_text = (
+    f'Umpire John Libka was responsible for the largest miss yesterday. This pitch to ' +
+    (f'Jason Heyward') + f' missed by ' +
+    f'5.76 inches.\n\n ' +
+    f'#ItsDifferentHere #RaysUp #CHCvsTB #TBvsCHC'
+)
 
 oauth = OAuth1(
     API_KEY,
