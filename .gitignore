@@ -14,3 +14,9 @@ creds/
 
 #CSV downloads
 downloads/*.csv
+
+#Notes
+notes.txt
+
+#Logs
+*.log
