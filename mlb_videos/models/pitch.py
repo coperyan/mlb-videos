@@ -1,9 +1,14 @@
 import os
 import pandas as pd
 from tqdm import tqdm
+import logging
+from logging.config import fileConfig
 
 from analysis.ump_calls import calculate_miss
 from utils import rank_dict_list
+
+fileConfig('logging.ini')
+logger = logging.getLogger('pitch')
 
 class Pitch:
     def __init__(self, d):
@@ -41,6 +46,7 @@ class Pitches:
         self.pitch_objs = []
         self.pitch_ct = len(df)
         self._generate_pitches()
+        logging.info(f'Generated Pitches class with {len(self.pitch_objs)} records..')
 
     def _generate_pitches(self):
         """
