@@ -35,108 +35,124 @@ YOUTUBE_API_VERSION = 'v3'
 #Valid privacy statuses
 VALID_PRIVACY_STATUSES = ("public","private","unlisted")
 
-def get_authenticated_service(args):
-    """
-    """
-    flow = flow_from_clientsecrets(
-        CLIENT_SECRETS_FILE,
-        scope = YOUTUBE_UPLOAD_SCOPE,
-        message = None
-    )
+class YouTubeUpload:
+    def __init__(
+        self,
+        file = None,
+        title = None,
+        desc = None,
+        tags = [],
+        privacy = 'unlisted'
+    ):
+        self.file = file
+        self.title = title
+        self.desc = desc
+        self.tags = ','.join(tags)
+        self.privacy = privacy
 
-    storage = Storage(f'{sys.argv[0]}-oauth2.json')
-    credentials = storage.get()
-
-    if credentials is None or credentials.invalid:
-        credentials = run_flow(flow, storage, args)
-    
-    return build(
-        YOUTUBE_API_SERVICE_NAME,
-        YOUTUBE_API_VERSION,
-        http=credentials.authorize(httplib2.Http())
-    )
-
-def initialize_upload(youtube, options):
-    """
-    """
-    tags = None
-    body = dict(
-        snippet = dict(
-            title = options['title'],
-            description = options['description'],
-            tags = tags,
-        ),
-        status = dict(
-            privacyStatus = options['privacyStatus']
+    def get_service(self, args):
+        """
+        """
+        flow = flow_from_clientsecrets(
+            CLIENT_SECRETS_FILE,
+            scope = YOUTUBE_UPLOAD_SCOPE,
+            message = None
         )
-    )
+        storage = Storage(f'{sys.argv[0]}-oauth2.json')
+        credentials = storage.get()
 
-    insert_request = youtube.videos().insert(
-        part = ','.join(body.keys()),
-        body = body,
-        media_body = MediaFileUpload(
-            options['file'],
-            chunksize = -1,
-            resumable = True
+        if credentials is None or credentials.invalid:
+            credentials = run_flow(
+                flow,
+                storage,
+                args
+            )
+
+        return build(
+            YOUTUBE_API_SERVICE_NAME,
+            YOUTUBE_API_VERSION,
+            http=credentials.authorize(httplib2.Http())
         )
-    )
 
-    resumable_upload(insert_request)
+    def video_upload(self, yt):
+        """
+        """
+        body = dict(
+            snippet = dict(
+                title = self.title,
+                description = self.desc,
+                tags = None,#self.tags,
+                defaultLanguage = 'en_US'
+            ),
+            status = dict(
+                privacyStatus=self.privacy
+            )
+        )
 
-def resumable_upload(insert_request):
-    response = None
-    error = None
-    retry = 0
+        insert_req = yt.videos().insert(
+            part = ','.join(body.keys()),
+            body = body,
+            media_body = MediaFileUpload(
+                self.file,
+                chunksize = -1,
+                resumable = True
+            )
+        )
 
-    while response is None:
-        try:
-            print('Uploading file...')
-            status, response = insert_request.next_chunk()
-            if response is not None:
-                if 'id' in response:
-                    print(f'Video id {response["id"]} was successfully uploaded..')
+        resp = self.resumable_upload(insert_req)
+        return resp
+
+    #def thumbnail_upload(self)
+
+    def resumable_upload(self, req):
+        """
+        """
+        response = None
+        error = None
+        retry = 0
+
+        while response is None:
+            try:
+                status, response = req.next_chunk()
+                if response is not None:
+                    if 'id' in response:
+                        print(f'YT Video {response["id"]} successfully uploaded..')
+                    else:
+                        print('No valid response.. Failed')
+            except HttpError as e:
+                if e.resp.status in RETRIABLE_STATUS_CODES:
+                    error = f'A retriable HTTP error {e.resp.status} occured: \n{e.content}'
                 else:
-                    exit(f'The upload failed with an unexpected response {response}')
+                    raise
+            except RETRIABLE_EXCEPTIONS as e:
+                error = f'A retriable error occured {e}'
+
+            if error is not None:
+                print(error)
+                retry += 1
+                if retry > MAX_RETRIES:
+                    exit("No longer attempting to retry..")
+
+                max_sleep = 2 ** retry
+                sleep_seconds = random.random() * max_sleep
+                print(f'Sleeping {sleep_seconds} and then retrying..')
+                time.sleep(sleep_seconds)
+
+    def upload_video(self):
+        args = argparser.parse_args()
+        yt = self.get_service(args)
+        try:
+            self.video_upload(yt)
         except HttpError as e:
-            if e.resp.status in RETRIABLE_STATUS_CODES:
-                error = f'A retriable HTTP error {e.resp.status} occured: \n{e.content}'
-            else:
-                raise
-        except RETRIABLE_EXCEPTIONS as e:
-            error = f'A retriable error occured {e}'
-
-        if error is not None:
-            print(error)
-            retry += 1
-            if retry > MAX_RETRIES:
-                exit("No longer attempting to retry..")
-
-            max_sleep = 2 ** retry
-            sleep_seconds = random.random() * max_sleep
-            print(f'Sleeping {sleep_seconds} and then retrying..')
-            time.sleep(sleep_seconds)
+            print(f'An HTTP error {e.resp.status} occured: \n{e.content}')    
+        
 
 
-def upload_video(video_data):
-    """
-    """
-    args = argparser.parse_args()
-    if not os.path.exists(video_data['file']):
-        exit(f'Please specify a valid file using the --file parameter..')
-
-    youtube = get_authenticated_service(args)
-    try:
-        initialize_upload(youtube, video_data)
-    except HttpError as e:
-        print(f'An HTTP error {e.resp.status} occured: \n{e.content}')
-
-
-test_video = {
-    'file': 'downloads/final.mp4',
-    'title': 'Worst Calls - 4/19/2022 (MLB Umpires)',
-    'description': 'Test Upload using YouTube Python API v3',
-    'keywords': 'mlb,python,badcalls,api',
-    'privacyStatus': 'unlisted'
-}
-
-upload_video(test_video)
+# test = YouTubeUpload(
+#     file = 'downloads/test.mp4',
+#     title = 'TEST',
+#     desc = 'TEST TEST TEST video upload',
+#     tags = ['mlb','video','fun'],
+#     privacy = 'unlisted'
+# )
+# test.upload_video()
