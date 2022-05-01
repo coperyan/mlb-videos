@@ -37,7 +37,6 @@ class Pitch:
             else:
                 setattr(self, k, v)
 
-
 class Pitches:
     def __init__(self,df):
         """
