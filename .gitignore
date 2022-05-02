@@ -6,7 +6,7 @@
 
 #Secret
 queries/
-creds/
+creds/*.json
 .idea
 
 #Video/Audio
