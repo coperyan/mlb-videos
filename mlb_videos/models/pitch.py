@@ -1,5 +1,5 @@
 import os
-from sqlite3 import TimestampFromTicks
+#from sqlite3 import TimestampFromTicks
 import swifter
 import pandas as pd
 
@@ -59,13 +59,13 @@ class Pitches:
 
         self.df = self.df.merge(game_df, left_on='game_pk', right_on='pk')      
     
-    def add_player_info(self, batters: bool = False,
-                        pitchers: bool = False, socials: bool = False):
+    def add_player_info(self, batters: bool = True, pitchers: bool = True,
+                        socials: bool = False):
         """
         """
         player_iterations = [('batter',batters),('pitcher',pitchers)]
 
-        for player_type in [x[0] for x in player_iterations]:
+        for player_type in [x[0] for x in player_iterations if x[1]]:
 
             player_list = self.df[self.df[player_type]].drop_duplicates()[player_type].to_list()
             players = []
@@ -89,14 +89,25 @@ class Pitches:
             - important element are the hashtags / twitter accounts
             - our tweets WILL be generated using some items from here
         """
+        team_iterations = ['home_team','away_team']
 
-        team_list = self.df[self.df['home_team']].drop_duplicates()[['home_team']].tolist()
-        teams = []
-        for t in team_list:
-            teams.append(Team(t).get_data())
+        for team_type in team_iterations:
 
-        t_df = pd.DataFrame(teams)
-        self.df = self.df.merge(t_df,left_on='home_team',right_on='abbreviation')
+            team_list = self.df[self.df[team_type]].drop_duplicates()[[team_type]].tolist()
+            teams = []
+
+            for team in team_list:
+                teams.append(Team(team).get_data())
+
+            team_df = pd.DataFrame(teams)
+            team_df.rename(
+                columns={c:f'{team_type}_{c}'
+                for c in team_df.columns.values},
+                inplace = True
+            )
+            self.df = self.df.merge(
+                team_df,left_on=team_type,right_on=f'{team_type}_abbreviation'
+            )
 
     def get_videos(self):
         """
