@@ -1,105 +1,95 @@
 import os
+import swifter
 import pandas as pd
-from tqdm import tqdm
-import logging
-from logging.config import fileConfig
 
-from analysis.ump_calls import calculate_miss
-from utils import rank_dict_list
+#from tqdm import tqdm
+#from collections import namedtuple
 
-fileConfig('logging.ini')
-logger = logging.getLogger('pitch')
-
-class Pitch:
-    def __init__(self, d):
-        """Sets attributes of Pitch Class
-        Based on dictionary passed
-        """
-        for k, v in d.items():
-            setattr(self, k, v)
-
-    def get_metadata(self):
-        """
-        """
-        return self.__dict__
-
-    def get_metadata_fields(self):
-        """
-        """
-        return list(self.__dict__.keys())
-
-    def add_fields(self,d):
-        """
-        """
-        for k,v in d.items():
-            if k in self.get_metadata_fields():
-                continue
-            else:
-                setattr(self, k, v)
+from analysis.ump_calls import COLS as UMP_COLS, calculate_miss
+from models.game import Game
+from models.player import Player
+from models.video import Video
 
 class Pitches:
-    def __init__(self,df):
-        """
+
+    def __init__(self, df):
+        """Pitches collection initialized by DF
+        Where each row represents a pitch & metadata
         """
         self.df = df
-        self.pitch_objs = []
-        self.pitch_ct = len(df)
-        self._generate_pitches()
-        logging.info(f'Generated Pitches class with {len(self.pitch_objs)} records..')
-
-    def _generate_pitches(self):
-        """
-        """
-        for _, row in self.df.iterrows():
-            self.pitch_objs.append(Pitch(row.to_dict()))
-
-    def _get_pitch(self, pitch_id):
-        """
-        """
-        return [x for x in self.pitch_objs if x.pitch_id == pitch_id][0]
-
-    def _update_pitch_attrs(self, dl):
-        """
-        """
-        for d in dl:
-            p = self._get_pitch(d['pitch_id'])
-            p.add_fields(d)
 
     def calculate_missed_calls(self):
         """
         """
-        for p in tqdm(self.pitch_objs, total=len(self.pitch_objs)):
-            calculate_miss(p)
+        self.df[UMP_COLS] = self.df.swifter.apply(
+            lambda x: calculate_miss(x),
+            axis = 1,
+            result_type = 'expand'
+        )
 
-    def rank_pitches(self, partition_by: list = [], order_by: list = [],
+    def add_game_info(self):
+        """
+        """
+        game_list = self.df[self.df['game_pk']].drop_duplicates()[['game_pk']]
+        games = []
+
+        for g in game_list:
+            games.append(Game(g).get_data())
+        game_df = pd.DataFrame(games)
+
+        self.df = self.df.merge(game_df, left_on='game_pk', right_on='pk')      
+    
+    def add_player_info(self, batters: bool = False,
+                        pitchers: bool = False, socials: bool = False):
+        """
+        """
+        if batters:
+            batter_list = self.df[self.df['batter']].drop_duplicates()[['batter']]
+            batters = []
+            
+            for b in batter_list:
+                batters.append(Player(b,socials).get_data())
+            batter_df = pd.DataFrame(batters)
+
+            self.df = self.df.merge(batter_df, left_on='batter', right_on='player_id')
+
+        if pitchers:
+            pitcher_list = self.df[self.df['pitcher']].drop_duplicates()[['pitcher']]
+            pitchers = []
+            
+            for p in pitcher_list:
+                pitchers.append(Player(p,socials).get_data())
+            pitcher_df = pd.DataFrame(pitchers)
+
+            self.df = self.df.merge(pitcher_df, left_on='pitcher', right_on='player_id')
+
+    def get_videos(self):
+        """
+        """
+        wrk = self.df.copy()
+        wrk['video_path'] = None
+        for index, row in wrk.iterrows():
+            iter_v = Video(
+                row.to_dict()
+            )
+            iter_v.download()
+            wrk.at[index,iter_v.get_fp()]
+        self.df = wrk
+
+    def rank_pitches(self, partition_by: list = [], order_by: str = None,
                     ascending: bool = False, name: str = None):
         """
         """
-        cols = ['pitch_id'] + partition_by + order_by
-        rnked = rank_dict_list(
-            dl = [{k:v for k, v in d.items() if k in cols} for d in self.get_pitch_dict()],
-            order_by = order_by,
-            asc = ascending,
-            partition_by = partition_by,
-            name = name
+        wrk = self.df.copy()
+        wrk[name] = wrk.groupby(partition_by)[order_by].rank(
+            method = 'first', ascending = ascending
         )
-        if name:
-            self._update_pitch_attrs(
-                [{k:v for k, v in d.items() if k in ['pitch_id',name]} for d in rnked]
-            )
+        wrk = wrk.sort_values(by=name, ascending=True)
+        wrk = wrk.reset_index(drop=True)
+        
+        self.df = wrk
 
-    def get_pitch_dict(self) -> list:
+    def get_df(self):
         """
         """
-        return [x.get_metadata() for x in self.pitch_objs]
-
-    def get_pitch_objs(self) -> list:
-        """
-        """
-        return self.pitch_objs
-
-    def get_pitch_df(self) -> pd.DataFrame:
-        """
-        """
-        return pd.DataFrame(self.get_pitch_dict())
-
+        return self.df
