@@ -1,4 +1,5 @@
 import os
+from sqlite3 import TimestampFromTicks
 import swifter
 import pandas as pd
 
@@ -7,6 +8,7 @@ import pandas as pd
 
 from models.game import Game
 from models.player import Player
+from models.Team import Team
 from models.video import Video
 
 from analysis.pitch_movement import COLS as PM_COLS, calculate_movement
@@ -61,25 +63,40 @@ class Pitches:
                         pitchers: bool = False, socials: bool = False):
         """
         """
-        if batters:
-            batter_list = self.df[self.df['batter']].drop_duplicates()[['batter']]
-            batters = []
+        player_iterations = [('batter',batters),('pitcher',pitchers)]
+
+        for player_type in [x[0] for x in player_iterations]:
+
+            player_list = self.df[self.df[player_type]].drop_duplicates()[player_type].to_list()
+            players = []
+
+            for player in player_list:
+                players.append(Player(player,socials).get_data())
             
-            for b in batter_list:
-                batters.append(Player(b,socials).get_data())
-            batter_df = pd.DataFrame(batters)
+            player_df = pd.DataFrame(players)
+            player_df.rename(
+                columns={c:f'{player_type}_{c}'
+                for c in player_df.columns.values},
+                inplace = True
+            )
+            self.df = self.df.merge(
+                player_df, left_on = player_type, right_on = f'{player_type}_id'
+            )
 
-            self.df = self.df.merge(batter_df, left_on='batter', right_on='player_id')
+    def add_team_info(self):
+        """Add a few team-related fields to the DF
+            - full name, division, etc.
+            - important element are the hashtags / twitter accounts
+            - our tweets WILL be generated using some items from here
+        """
 
-        if pitchers:
-            pitcher_list = self.df[self.df['pitcher']].drop_duplicates()[['pitcher']]
-            pitchers = []
-            
-            for p in pitcher_list:
-                pitchers.append(Player(p,socials).get_data())
-            pitcher_df = pd.DataFrame(pitchers)
+        team_list = self.df[self.df['home_team']].drop_duplicates()[['home_team']].tolist()
+        teams = []
+        for t in team_list:
+            teams.append(Team(t).get_data())
 
-            self.df = self.df.merge(pitcher_df, left_on='pitcher', right_on='player_id')
+        t_df = pd.DataFrame(teams)
+        self.df = self.df.merge(t_df,left_on='home_team',right_on='abbreviation')
 
     def get_videos(self):
         """

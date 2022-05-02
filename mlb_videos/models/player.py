@@ -4,7 +4,7 @@ import pandas as pd
 from sources.statsapi import StatsAPI
 import constants as Constants
 
-players = [593428,543333,608700,641531]
+#players = [593428,543333,608700,641531]
 
 class Player:
     def __init__(self, player_id: int = 0, socials: bool = False):
