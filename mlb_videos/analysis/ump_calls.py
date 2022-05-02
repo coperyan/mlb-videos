@@ -2,8 +2,9 @@ import os
 import pandas as pd
 import scipy.stats as stats
 from tqdm import tqdm
+from collections import namedtuple
 
-from utils import DotDict
+from constants import DotDict
 
 AVG_ERROR = 0.25
 SAMPLE = 10000
@@ -60,6 +61,9 @@ def generate_coords(sz_bot, sz_top, plate_x, plate_z):
         'Y': plate_z,
     }
 
+def default_vals():
+    return None, 0, None, 0, None, 0
+
 def calc_total_miss_type(hm,vm):
     """Checks vert/horiz misses for classification
     """
@@ -71,17 +75,6 @@ def calc_total_miss_type(hm,vm):
         return 'vertical'
     else:
         return None
-
-def gen_return_dict(l):
-    """Generates a dictionary with vals
-    Matched to static cols above
-    """
-    return dict(
-        zip(
-            COLS,
-            l
-        )
-    )
 
 def calculate_strike(d):
     """Calculates called strike miss
@@ -110,7 +103,7 @@ def calculate_strike(d):
     tm = round(hm + vm,2)
     tmt = calc_total_miss_type(hm,vm)
 
-    return gen_return_dict([hmt,hm,vmt,vm,tmt,tm])
+    return hmt,hm,vmt,vm,tmt,tm
 
 def calculate_ball(d):
     """
@@ -138,10 +131,10 @@ def calculate_ball(d):
     tm = round(min(hm, vm),2)
     tmt = calc_total_miss_type(hm,vm)
 
-    return gen_return_dict([hmt,hm,vmt,vm,tmt,tm])
+    return hmt,hm,vmt,vm,tmt,tm
 
 def calculate_miss(p):
-    """Parameter is pitch object
+    """Parameter is a Pitch, named tuple
     Has all of the normal pitch attributes
 
     First we check for missing vals OR non-calls
@@ -149,7 +142,7 @@ def calculate_miss(p):
     """
     if any(v == 0 for v in (p.plate_x,p.plate_z,p.sz_bot,p.sz_top)) or \
         p.description not in CALLS:
-        nd = gen_return_dict([None,0,None,0,None,0])
+        return default_vals()
     else:
         d = {
             x: getattr(p,x) for x in SRC_COLS
@@ -162,19 +155,8 @@ def calculate_miss(p):
         d = DotDict(d)
 
         if p.description == 'called_strike':
-            nd = calculate_strike(d)
+            return calculate_strike(d)
         elif p.description == 'ball':
-            nd = calculate_ball(d)
-
-    for k, v in nd.items():
-        setattr(p, k, v)
-
-
-
-    
-
-    
-        
-    
+            return calculate_ball(d)
 
 
