@@ -7,6 +7,7 @@
 #Secret
 queries/
 creds/
+.idea
 
 #Video/Audio
 *.mp4
@@ -14,9 +15,11 @@ creds/
 
 #CSV downloads
 downloads/*.csv
+mlb_videos/data/*.csv
 
 #Notes
 notes.txt
 
 #Logs
 *.log
+mlb_videos/logs
