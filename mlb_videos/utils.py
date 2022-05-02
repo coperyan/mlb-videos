@@ -3,24 +3,24 @@ import pandas as pd
 from itertools import groupby
 from datetime import datetime, timedelta, date
 
-from constants import STATCAST_VALID_DATES, STATCAST_DATE_FORMAT, STATCAST_DATE_FORMATS
+import constants as Constants
 
 def get_statcast_date_range(start_dt: str = None, end_dt: str = None):
     """
     """
-    start_date = datetime.strptime(start_dt,STATCAST_DATE_FORMAT).date()
-    end_date = datetime.strptime(end_dt,STATCAST_DATE_FORMAT).date()
+    start_date = datetime.strptime(start_dt,Constants.DateFormat).date()
+    end_date = datetime.strptime(end_dt,Constants.DateFormat).date()
     dates = []
     start = start_date
     
     while start <= end_date:
         date_span = start.replace(month=3, day=15), start.replace(month=11,day=15)
-        season_start, season_end = STATCAST_VALID_DATES.get(start.year,date_span)
+        season_start, season_end = Constants.Statcast.ValidDates.get(start.year,date_span)
         
         if start < season_start:
             start = season_start
         elif start > season_end:
-            start, _ = STATCAST_VALID_DATES.get(start.year + 1, (date(month=3,day=15,year=start.year + 1), None))
+            start, _ = Constants.Statcast.ValidDates.get(start.year + 1, (date(month=3,day=15,year=start.year + 1), None))
 
         if start > end_date:
             break
@@ -49,21 +49,15 @@ def parse_statcast_df(df) -> pd.DataFrame:
         if str(first_value).endswith('%') or column.endswith('%'):
             data_copy[column] = data_copy[column].astype(str).str.replace("%", "").astype(float) / 100.0
         else:
-            for date_regex, date_format in STATCAST_DATE_FORMATS:
+            for date_regex, date_format in Constants.Statcast.DateFormats:
                 if isinstance(first_value, str) and date_regex.match(first_value):
                     data_copy[column] = data_copy[column].apply(pd.to_datetime, errors='ignore', format=date_format)
                     data_copy[column] = data_copy[column].convert_dtypes(convert_string=False)
                     break
 
+    data_copy.rename(columns={c:c.replace('.','_') for c in data_copy.columns.values if '.' in c},inplace=True)
+
     return data_copy
-
-class DotDict(dict):
-    """Dot.Notation access to dict attribs
-    """
-    __getattr__ = dict.get
-    __setattr__ = dict.__setitem__
-    __delattr__ = dict.__delitem__
-
 
 def rank_dict_list(dl: list = None, order_by: list = None, asc: bool = False,
                     partition_by: list = [], name: str = None):
