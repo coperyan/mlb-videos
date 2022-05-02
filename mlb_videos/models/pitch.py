@@ -5,10 +5,13 @@ import pandas as pd
 #from tqdm import tqdm
 #from collections import namedtuple
 
-from analysis.ump_calls import COLS as UMP_COLS, calculate_miss
 from models.game import Game
 from models.player import Player
 from models.video import Video
+
+from analysis.pitch_movement import COLS as PM_COLS, calculate_movement
+from analysis.ump_calls import COLS as UMP_COLS, calculate_miss
+
 
 class Pitches:
 
@@ -17,12 +20,27 @@ class Pitches:
         Where each row represents a pitch & metadata
         """
         self.df = df
+        self.orig_df = pd.DataFrame
+
+    def backup_df(self):
+        """
+        """
+        self.orig_df = self.df.copy()
 
     def calculate_missed_calls(self):
         """
         """
         self.df[UMP_COLS] = self.df.swifter.apply(
             lambda x: calculate_miss(x),
+            axis = 1,
+            result_type = 'expand'
+        )
+
+    def calculate_movement(self):
+        """
+        """
+        self.df[PM_COLS] = self.df.swifter.apply(
+            lambda x:calculate_movement(x),
             axis = 1,
             result_type = 'expand'
         )

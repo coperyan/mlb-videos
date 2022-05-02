@@ -43,7 +43,7 @@ def pitch_movement(p):
         (abs(p.pfx_x * -12.00)) + (abs(p.pfx_z * 12.00))
     )
 
-def calculate_pitch_movement(p):
+def calculate_movement(p):
     """Validates necessary fields
     Calculates movement items, returns in tuple
     """
