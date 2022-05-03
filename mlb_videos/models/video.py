@@ -15,30 +15,36 @@ _SAVE_PATH = 'data'
 class Video:
     """
     """
-    def __init__(self, p):
+    def __init__(self, p = None, dl: bool = True,
+                compress: bool = False):
         """
         """
         self.pitch = p
-        self.Search = None
+        self.dl = dl
+        self.compress = compress
         self.play_id = None
-        self.Clip = None
         self.file_path = ''
+        self.search()
+        if self.dl:
+            self.download()
+            if self.compress:
+                self.render_compressed()
         
     def search(self):
         """
         """
-        self.Search = Search(
+        self.play_id = Search(
             pitch = self.pitch
-        )
-    
+        ).get_play_id()
+            
     def download(self):
         """
         """
         if self.play_id:
-            self.Clip = Clip(
-                download = True,
-                play_id = self.play_id
-            )
+            self.file_path = Clip(
+                play_id = self.play_id,
+                download = True
+            ).get_file_path()
 
     def render_compressed(self):
         """
@@ -57,17 +63,12 @@ class Video:
             n_save_path,
             fps = _FPS_DEFAULT
         )
-        self.file_path_compresssed = n_save_path
+        self.file_path = n_save_path
 
     def get_fp(self):
         """
         """
         return self.file_path
-    
-    def get_fp_compressed(self):
-        """
-        """
-        return self.file_path_compressed
 
 class VideoCompilation:
     """
