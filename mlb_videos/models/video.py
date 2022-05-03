@@ -76,7 +76,7 @@ class VideoCompilation:
     def __init__(self, df: pd.DataFrame = None, name: str = None):
         """
         """
-        self.pitches = df
+        self.df = df
         self.clips = df['video_path'].to_list()
         self.compclips = []
         self.compname = name
