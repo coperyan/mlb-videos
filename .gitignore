@@ -16,6 +16,7 @@ creds/*.json
 #CSV downloads
 downloads/*.csv
 mlb_videos/data/*.csv
+tests/data/*.csv
 
 #Notes
 notes.txt
