@@ -42,12 +42,15 @@ class Client:
         """
         self.resp = requests.get(self.url, headers = self.headers)
         if self.resp.status_code != 200:
-            raise Exception(f'Bad Request, Status Code: {self.resp.status_code}: {self.resp.text}')
+            logging.warning(f'Bad Request, Status Code: {self.resp.status_code}: {self.resp.text}')
         if self.resp_path:
             wrk = self.resp.json()
-            for k in self.resp_path:
-                wrk = wrk.get(k,{})
-            self.resp_json = wrk
+            try:
+                for k in self.resp_path:
+                    wrk = wrk.get(k,{})
+                self.resp_json = wrk
+            except Exception as e:
+                logging.critical(f'Parse of request JSON failed: Exception: {e} | JSON: {self.resp.json()}')
 
     def download_video(self, fp):
         """Referencing the content of the original req
@@ -68,7 +71,7 @@ class Clip:
     """
     """
     def __init__(self, feed = Constants.VideoRoom.FeedTypes.Optimal,
-                download: bool = None, play_id: str = None):
+                play_id: str = None, download: bool = None):
         """
         """
         self.feed = feed
@@ -76,6 +79,9 @@ class Clip:
         self.play_id = play_id
         self.get_clip()
         self.gen_clip_metadata()
+        self.get_clip_feeds()
+        if download:
+            self.download_clip()
 
     def get_clip(self):
         """
@@ -117,8 +123,8 @@ class Clip:
                     feeds.append({
                         'id': f'{cf["type"]}_{pb["name"]}',
                         'type': cf['type'],
-                        'name': cf['name'],
-                        'url': cf['url']
+                        'name': pb['name'],
+                        'url': pb['url']
                     })
 
         for ft in self.feed:
@@ -149,6 +155,11 @@ class Clip:
         client.download_video(
             fp = self.file_path
         )
+
+    def get_file_path(self):
+        """
+        """
+        return self.file_path
 
 class Search:
     """
@@ -182,6 +193,8 @@ class Search:
         for param in self.params:
             param_ref = next(filter(lambda x: x['Name'] == param, Constants.VideoRoom.Parameters))
             param_val = self.pitch.get(param_ref["Ref"],{})
+            if param == 'date':
+                param_val = param_val.strftime('%Y-%m-%d')
             eq_sep = '=' * param_ref['EqCt']
             sp_pad = r'\"' if param_ref['Type'] == 'str' else ''
 
