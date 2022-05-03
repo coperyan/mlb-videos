@@ -145,12 +145,28 @@ class Pitches:
 
     def rank_pitches(self, partition_by: list = [], order_by: str = None,
                     ascending: bool = False, name: str = None):
-        """
+        """Sorts values in dataframe - can group by list of fields or none
+        Order by value (pass string = field name)
+        ascending: boolean, name: field for rank
+
+        1) If no field name, just sort the df?
+        2) If partition by param, group by, add field, sort
+        3) If no paratition by param, add field and sort.. 
         """
         wrk = self.df.copy()
-        wrk[name] = wrk.groupby(partition_by)[order_by].rank(
-            method = 'first', ascending = ascending
-        )
+
+        if name is None:
+            self.df = wrk.sort_values(by=order_by, ascending = ascending)
+
+        elif partition_by:
+            wrk[name] = wrk.groupby(partition_by)[order_by].rank(
+                method = 'first', ascending = ascending
+            )
+
+        else:
+            wrk[name] = wrk[order_by].rank(
+                method = 'first',ascending = ascending
+            )
         wrk = wrk.sort_values(by=name, ascending=True)
         wrk = wrk.reset_index(drop=True)
         
