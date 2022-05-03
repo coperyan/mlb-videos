@@ -2,8 +2,13 @@ import os
 import pandas as pd
 from itertools import groupby
 from datetime import datetime, timedelta, date
+import logging
+import logging.config 
 
 import constants as Constants
+
+logging.config.fileConfig('logging.ini')
+logger = logging.getLogger(__name__)
 
 def get_statcast_date_range(start_dt: str = None, end_dt: str = None):
     """

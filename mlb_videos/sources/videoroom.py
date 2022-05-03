@@ -1,7 +1,12 @@
 import os
 import requests
+import logging
+import logging.config
 
 import constants as Constants
+
+logging.config.fileConfig('logging.ini')
+logger = logging.getLogger(__name__)
 
 _CHUNK_SIZE = 1024
 _QUERY_SUFFIX = 'Order By Timestamp DESC'

@@ -1,7 +1,12 @@
 import os
 import pandas as pd
+import logging
+import logging.config
 
 import constants as Constants
+
+logging.config.fileConfig('logging.ini')
+logger = logging.getLogger(__name__)
 
 class Team:
     def __init__(self, t: str = None):
@@ -17,7 +22,7 @@ class Team:
         Calls out missing teams (if any)
         """
         self.metadata = (
-            self.Constants.Team.get(self.abbreviation)
+            Constants.Team.Data.get(self.abbreviation,{})
         )
         if not self.metadata:
             raise Exception('Team not found..')

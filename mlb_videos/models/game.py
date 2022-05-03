@@ -1,8 +1,13 @@
 import os
 import pandas as pd
+import logging
+import logging.config
 
 from sources.statsapi import StatsAPI
 import constants as Constants
+
+logging.config.fileConfig('logging.ini')
+logger = logging.getLogger(__name__)
 
 class Game:
     def __init__(self, game_pk: int = 0):

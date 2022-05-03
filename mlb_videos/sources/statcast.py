@@ -1,5 +1,7 @@
 import os
 import io
+import logging
+import logging.config
 import requests
 import pandas as pd
 from tqdm import tqdm
@@ -7,6 +9,9 @@ import concurrent.futures
 
 import constants
 from utils import get_statcast_date_range, parse_statcast_df
+
+logging.config.fileConfig('logging.ini')
+logger = logging.getLogger(__name__)
 
 _REQUEST_URL = 'https://baseballsavant.mlb.com/statcast_search/csv?all=true&hfPT=&hfAB=&hfBBT=&hfPR=&hfZ=&stadium=&hfBBL=&hfNewZones=&hfGT=R%7CPO%7CS%7C=&hfSea=&hfSit=&player_type=pitcher&hfOuts=&opponent=&pitcher_throws=&batter_stands=&hfSA=&game_date_gt={start_dt}&game_date_lt={end_dt}&team=&position=&hfRO=&home_road=&hfFlag=&metric_1=&hfInn=&min_pitches=0&min_results=0&group_by=name&sort_col=pitches&player_event_sort=h_launch_speed&sort_order=desc&min_abs=0&type=details&'
 _FILL_COLS = [
@@ -29,12 +34,22 @@ class Statcast:
         self.start_date = start_dt
         self.end_date = constants.Yesterday if not end_dt else end_dt
         self.kwargs = kwargs
+        logging.info(
+            f'Performing Statcast search for dates: {self.start_date} -> {self.end_date}\n' + 
+            f'Additional args passed: {kwargs}'
+        )
+
         self.df_list = []
+        self.final_df = pd.DataFrame()
         self.date_range = get_statcast_date_range(self.start_date, self.end_date)
+
         self._handle_requests()
         self._fill_df_cols()
         self._add_pitch_id()
         self._apply_df_filters()
+        logging.info(
+            f'Completed Statcast search - result: {len(self.final_df)} row(s)..'
+        )
 
     def _make_request(self, start_dt: str = None, end_dt: str = None) -> pd.DataFrame:
         """

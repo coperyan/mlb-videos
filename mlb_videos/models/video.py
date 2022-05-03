@@ -1,8 +1,13 @@
 import os
 import pandas as pd 
+import logging
+import logging.config 
 
 from moviepy.editor import VideoFileClip, concatenate_videoclips
 from sources.videoroom import Clip, Search
+
+logging.config.fileConfig('logging.ini')
+logger = logging.getLogger(__name__)
 
 _FPS_DEFAULT = 30
 _SAVE_PATH = 'data'

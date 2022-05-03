@@ -2,8 +2,13 @@ import os
 import requests
 import pandas as pd
 from bs4 import BeautifulSoup
+import logging
+import logging.config 
 
 import constants as Constants
+
+logging.config.fileConfig('logging.ini')
+logger = logging.getLogger(__name__)
 
 _GAME_URL = 'https://statsapi.mlb.com/api/v1.1/game/{game_pk}/feed/live'
 _PLAYER_URL = 'https://statsapi.mlb.com/api/v1/people/{id}'
@@ -11,7 +16,7 @@ _PLAYER_SITE_URL = 'https://www.mlb.com/player/{ns}'
 
 _SOCIALS = [
     {'name':'twitter','repl':'https://twitter.com/@'},
-    {'name':'instagram','repl':'https://instagram.com/'}
+    {'name':'instagram','repl':'https://www.instagram.com/'}
 ]
 
 class Game:
@@ -82,7 +87,7 @@ class Player:
             ns = ns
         )
         resp = requests.get(req_url)
-        soup = BeautifulSoup(resp.text)
+        soup = BeautifulSoup(resp.text,features='lxml')
 
         for s in _SOCIALS:
             try:

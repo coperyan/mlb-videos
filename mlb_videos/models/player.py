@@ -1,10 +1,13 @@
 import os
 import pandas as pd
+import logging
+import logging.config
 
 from sources.statsapi import StatsAPI
 import constants as Constants
 
-#players = [593428,543333,608700,641531]
+logging.config.fileConfig('logging.ini')
+logger = logging.getLogger(__name__)
 
 class Player:
     def __init__(self, player_id: int = 0, socials: bool = False):

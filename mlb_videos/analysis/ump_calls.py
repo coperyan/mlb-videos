@@ -1,10 +1,15 @@
 import os
 import pandas as pd
-import scipy.stats as stats
+import logging
+import logging.config
+#import scipy.stats as stats
 from tqdm import tqdm
 from collections import namedtuple
 
 from constants import DotDict
+
+logging.config.fileConfig('logging.ini')
+logger = logging.getLogger(__name__)
 
 AVG_ERROR = 0.25
 SAMPLE = 10000
