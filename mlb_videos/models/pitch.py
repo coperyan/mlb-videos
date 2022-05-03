@@ -76,7 +76,7 @@ class Pitches:
         """
         """
         logging.info(
-            'Adding player info..\n' + 
+            'Adding player info..' + 
             f'PARAMS: batters:{batters}, pitchers:{pitchers}, socials:{socials}'
         )
         player_iterations = [('batter',batters),('pitcher',pitchers)]
@@ -135,11 +135,11 @@ class Pitches:
         wrk['video_path'] = None
         for index, row in wrk.iterrows():
             iter_v = Video(
-                row.to_dict()
+                p = row.to_dict()
             )
             iter_v.download()
             wrk.at[index,'video_path'] = iter_v.get_fp()
-            logging.info(f'Completed download for video - {iter_v.play_id} - {index} of {len(wrk)}..')
+            logging.info(f'Completed download for video - {iter_v.play_id} - {index+1} of {len(wrk)}..')
         self.df = wrk
         logging.info(f'Completed video search & download for ALL pitches..')
 
