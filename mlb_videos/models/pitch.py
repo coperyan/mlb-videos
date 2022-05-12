@@ -10,7 +10,7 @@ import logging.config
 from models.game import Game
 from models.player import Player
 from models.team import Team
-from models.video import Video
+from models.video import Video, VideoCompilation
 
 from analysis.pitch_movement import COLS as PM_COLS, calculate_movement
 from analysis.ump_calls import COLS as UMP_COLS, calculate_miss
@@ -18,14 +18,17 @@ from analysis.ump_calls import COLS as UMP_COLS, calculate_miss
 logging.config.fileConfig('logging.ini')
 logger = logging.getLogger(__name__)
 
+DF_SUBFOLDER = 'data'
+
 class Pitches:
     """
     """
 
-    def __init__(self, df):
+    def __init__(self, df, path:str = None):
         """Pitches collection initialized by DF
         Where each row represents a pitch & metadata
         """
+        self.path = path
         self.df = df
         self.orig_df = pd.DataFrame
         logging.info(f'Initialized Pitches object: {len(df)} rows..')
@@ -135,13 +138,23 @@ class Pitches:
         wrk['video_path'] = None
         for index, row in wrk.iterrows():
             iter_v = Video(
-                p = row.to_dict()
+                p = row.to_dict(),
+                path = self.path
             )
             iter_v.download()
             wrk.at[index,'video_path'] = iter_v.get_fp()
             logging.info(f'Completed download for video - {iter_v.play_id} - {index+1} of {len(wrk)}..')
         self.df = wrk
         logging.info(f'Completed video search & download for ALL pitches..')
+
+    def create_compilation(self, name:str = None):
+        """
+        """
+        logging.info(f'Creating compilation for {len(self.df)} clips..')
+        comp = VideoCompilation(self.path, self.df, name)
+        self.compilation_path = comp.create_compilation()
+        logging.info(f'Completed compilation for {len(self.df)} clips..')
+        return self.compilation_path
 
     def rank_pitches(self, partition_by: list = [], order_by: str = None,
                     ascending: bool = False, name: str = None):
@@ -176,3 +189,13 @@ class Pitches:
         """
         """
         return self.df
+
+    def save_df(self, name: str = 'pitches'):
+        """
+        """
+        self.df.to_csv(os.path.join(self.path,DF_SUBFOLDER,f'{name}.csv'),index=False)
+
+    def refresh_index(self):
+        """
+        """
+        self.df = self.df.reset_index(drop=True)
