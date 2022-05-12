@@ -10,7 +10,6 @@ logger = logging.getLogger(__name__)
 
 CHUNK_SIZE = 1024
 QUERY_SUFFIX = 'Order By Timestamp DESC'
-SAVE_PATH = 'data'
 DEFAULT_FEED = 'opt'
 
 class Client:
@@ -71,9 +70,10 @@ class Clip:
     """
     """
     def __init__(self, feed = Constants.VideoRoom.FeedTypes.Optimal,
-                play_id: str = None, download: bool = None):
+                play_id: str = None, download: bool = None, path:str = None):
         """
         """
+        self.path = path
         self.feed = feed
         self.download = download
         self.play_id = play_id
@@ -151,7 +151,7 @@ class Clip:
             f'{self.metadata["slug"]}_' + 
             f'{self.feed_choice["id"]}.mp4' 
         )
-        self.file_path = os.path.join(SAVE_PATH,self.file_name)
+        self.file_path = os.path.join(self.path,self.file_name)
         client.download_video(
             fp = self.file_path
         )
