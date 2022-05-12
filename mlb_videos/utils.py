@@ -2,6 +2,8 @@ import os
 import pandas as pd
 from itertools import groupby
 from datetime import datetime, timedelta, date
+import pathlib
+import shutil
 import logging
 import logging.config 
 
@@ -10,11 +12,18 @@ import constants as Constants
 logging.config.fileConfig('logging.ini')
 logger = logging.getLogger(__name__)
 
+class Date:
+    def __init__(self, day_offset: int = 0):
+        self.dt = datetime.now() + timedelta(days = day_offset)
+        self.standard = self.dt.strftime(Constants.DateFormats.Standard)
+        self.formal = self.dt.strftime(Constants.DateFormats.Formal)
+        self.int = self.dt.strftime(Constants.DateFormats.Int)
+
 def get_statcast_date_range(start_dt: str = None, end_dt: str = None):
     """
     """
-    start_date = datetime.strptime(start_dt,Constants.DateFormat).date()
-    end_date = datetime.strptime(end_dt,Constants.DateFormat).date()
+    start_date = datetime.strptime(start_dt,Constants.DateFormats.Standard).date()
+    end_date = datetime.strptime(end_dt,Constants.DateFormats.Standard).date()
     dates = []
     start = start_date
     
@@ -86,10 +95,28 @@ def rank_dict_list(dl: list = None, order_by: list = None, asc: bool = False,
             [d.update({name: (i + 1)}) for i, d in enumerate(dl_sorted)]
     return dl_sorted
 
-# test = rank_dict_list(
-#     dl = dl,
-#     order_by = ['total_miss'],
-#     asc = False,
-#     partition_by = ['game_pk'],
-#     name = 'total_miss_rank'
-# )
+def setup_project(name:str = None, suffix:str = None, purge_existing:bool = False):
+    """
+    """
+    project_path = os.path.join(Constants.Project.Path,name)
+    project_iter_path = os.path.join(project_path,suffix)
+
+    if not os.path.isdir(project_path):
+        pathlib.Path(project_path).mkdir(parents=True, exist_ok=True)
+        logging.info(f'Created project path: {project_path}')
+
+    if os.path.isdir(project_iter_path) and purge_existing:
+        shutil.rmtree(project_iter_path)
+        logging.info(f'Purged file contents of {project_iter_path}')
+    else:
+        pathlib.Path(project_iter_path).mkdir(parents=True, exist_ok=True)   
+        logging.info(f'Created project iteration path: {project_iter_path}')      
+
+    for subf in Constants.Project.Subfolders:
+        pathlib.Path(os.path.join(project_iter_path,subf)).mkdir(parents = True, exist_ok = True)
+    logging.info(f'Created all project subfolders..')
+
+    return project_iter_path
+
+
+
