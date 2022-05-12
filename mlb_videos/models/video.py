@@ -10,16 +10,18 @@ logging.config.fileConfig('logging.ini')
 logger = logging.getLogger(__name__)
 
 FPS_DEFAULT = 30
-SAVE_PATH = 'data'
+CLIP_SUBFOLDER = 'clips'
+COMPILATION_SUBFOLDER = 'compilations'
 
 class Video:
     """
     """
     def __init__(self, p = None, dl: bool = True,
-                compress: bool = False):
+                path: str = None, compress: bool = False):
         """
         """
         self.pitch = p
+        self.path = os.path.join(path,CLIP_SUBFOLDER)
         self.dl = dl
         self.compress = compress
         self.play_id = None
@@ -43,14 +45,15 @@ class Video:
         if self.play_id:
             self.file_path = Clip(
                 play_id = self.play_id,
-                download = True
+                download = True,
+                path = self.path
             ).get_file_path()
 
     def render_compressed(self):
         """
         """
         n_save_path = os.path.join(
-                SAVE_PATH,
+                self.path,
                 os.path.basename(self.file_path).replace(
                     '.mp4','_compressed.mp4'
                 )
@@ -73,13 +76,15 @@ class Video:
 class VideoCompilation:
     """
     """
-    def __init__(self, df: pd.DataFrame = None, name: str = None):
+    def __init__(self, path:str = None, df: pd.DataFrame = None, name: str = None):
         """
         """
+        self.name = name
+        self.file = f'{name}.mp4'
+        self.file_path = os.path.join(path, COMPILATION_SUBFOLDER, self.file)
         self.df = df
         self.clips = df['video_path'].to_list()
         self.compclips = []
-        self.compname = name
 
     def check_clips(self):
         """
@@ -90,7 +95,7 @@ class VideoCompilation:
                 if os.path.exists(fp):
                     continue
                 else:
-                    print(f'Missing file in path for {os.path.basename(fp)}..')
+                    logging.info(f'Missing file in path for {os.path.basename(fp)}..')
 
     def create_compilation(self):
         """
@@ -101,7 +106,9 @@ class VideoCompilation:
             )
         self.comp = concatenate_videoclips(self.compclips,method='compose')
         self.comp.write_videofile(
-            os.path.join(SAVE_PATH,self.compname),
+            self.file_path,
             fps = FPS_DEFAULT
         )
+        return self.file_path
+        
 
