@@ -4,6 +4,7 @@ from pathlib import Path
 from datetime import date, datetime, timedelta
 
 DateFormat = "%Y-%m-%d"
+DateFormatInt = '%Y%m%d'
 Yesterday = (date.today() + timedelta(days=-1)).strftime(DateFormat)
 
 def get_query(q):
@@ -12,6 +13,19 @@ def get_query(q):
   with open(f'../queries/{q}.txt') as f:
     query = f.read()
   return query
+
+class Project:
+  Path = '../projects'
+  Subfolders = [
+    'data',
+    'clips',
+    'compilations'
+  ]
+
+class DateFormats:
+  Standard = '%Y-%m-%d'
+  Int = '%Y%m%d'
+  Formal = '%m/%d/%Y'
 
 class DotDict(dict):
     """Dot.Notation access to dict attribs
@@ -144,7 +158,7 @@ class VideoRoom:
     "Away": ["AWAY_mp4Avc","NETWORK_mp4Avc","CMS_mp4Avc","HOME_mp4Avc","CMS_highBit"],
   })
   Queries = {
-    "Query": get_query('Query'),
+    "Query": get_query('Request'),
     "Clip": get_query('Clip')
   }
   Responses = {
