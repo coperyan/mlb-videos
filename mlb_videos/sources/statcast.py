@@ -26,9 +26,11 @@ SORT_VALS = [
     'at_bat_number',
     'pitch_number'
 ]
+DATA_PATH = 'data'
 
 class Statcast:
-    def __init__(self, start_dt: str = None, end_dt: str = None, **kwargs):
+    def __init__(self, start_dt: str = None, end_dt: str = None,
+                save:bool = True, path:str = None, **kwargs):
         """
         """
         self.start_date = start_dt
@@ -50,6 +52,8 @@ class Statcast:
         logging.info(
             f'Completed Statcast search - result: {len(self.final_df)} row(s)..'
         )
+        if save:
+            self.final_df.to_csv(os.path.join(path,DATA_PATH,'statcast.csv'), index=False)
 
     def _make_request(self, start_dt: str = None, end_dt: str = None) -> pd.DataFrame:
         """
