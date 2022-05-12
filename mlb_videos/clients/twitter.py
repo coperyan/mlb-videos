@@ -19,7 +19,7 @@ class Auth:
     def __init__(self):
         """Initialization generates auth element of class
         """
-        self._generate_auth()
+        return self._generate_auth()
     
     def _generate_auth(self):
         """Create oauth1
@@ -27,7 +27,7 @@ class Auth:
         with open('../creds/twitter.json') as f:
             creds = json.load(f)
 
-        self.oauth = OAuth1(
+        return OAuth1(
             creds['api_key'],
             client_secret = creds['api_key_secret'],
             resource_owner_key = creds['access_token'],
