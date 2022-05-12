@@ -10,11 +10,11 @@ import constants as Constants
 logging.config.fileConfig('logging.ini')
 logger = logging.getLogger(__name__)
 
-_GAME_URL = 'https://statsapi.mlb.com/api/v1.1/game/{game_pk}/feed/live'
-_PLAYER_URL = 'https://statsapi.mlb.com/api/v1/people/{id}'
-_PLAYER_SITE_URL = 'https://www.mlb.com/player/{ns}'
+GAME_URL = 'https://statsapi.mlb.com/api/v1.1/game/{game_pk}/feed/live'
+PLAYER_URL = 'https://statsapi.mlb.com/api/v1/people/{id}'
+PLAYER_SITE_URL = 'https://www.mlb.com/player/{ns}'
 
-_SOCIALS = [
+SOCIALS = [
     {'name':'twitter','repl':'https://twitter.com/@'},
     {'name':'instagram','repl':'https://www.instagram.com/'}
 ]
@@ -30,7 +30,7 @@ class Game:
     def _make_api_request(self):
         """
         """
-        req_url = _GAME_URL.format(
+        req_url = GAME_URL.format(
             game_pk = self.game_pk
         )
         resp = requests.get(req_url)
@@ -73,7 +73,7 @@ class Player:
     def _make_api_request(self):
         """
         """
-        req_url = _PLAYER_URL.format(
+        req_url = PLAYER_URL.format(
             id = self.player_id
         )
         resp = requests.get(req_url)
@@ -83,13 +83,13 @@ class Player:
         """
         """
         ns = self.player_data['nameSlug']
-        req_url = _PLAYER_SITE_URL.format(
+        req_url = PLAYER_SITE_URL.format(
             ns = ns
         )
         resp = requests.get(req_url)
         soup = BeautifulSoup(resp.text,features='lxml')
 
-        for s in _SOCIALS:
+        for s in SOCIALS:
             try:
                 val = soup.find('li',{'class':s['name']}).find('a')['href'].replace(s['repl'],'')
             except:

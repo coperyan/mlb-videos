@@ -8,10 +8,10 @@ import constants as Constants
 logging.config.fileConfig('logging.ini')
 logger = logging.getLogger(__name__)
 
-_CHUNK_SIZE = 1024
-_QUERY_SUFFIX = 'Order By Timestamp DESC'
-_SAVE_PATH = 'data'
-_DEFAULT_FEED = 'opt'
+CHUNK_SIZE = 1024
+QUERY_SUFFIX = 'Order By Timestamp DESC'
+SAVE_PATH = 'data'
+DEFAULT_FEED = 'opt'
 
 class Client:
     """Used to make requests to API endpoints
@@ -58,7 +58,7 @@ class Client:
         File path is only parameter - will be passed by different class
         """
         with open(fp,'wb') as f:
-            for chunk in self.resp.iter_content(chunk_size=_CHUNK_SIZE):
+            for chunk in self.resp.iter_content(chunk_size=CHUNK_SIZE):
                 if chunk:
                     f.write(chunk)
 
@@ -151,7 +151,7 @@ class Clip:
             f'{self.metadata["slug"]}_' + 
             f'{self.feed_choice["id"]}.mp4' 
         )
-        self.file_path = os.path.join(_SAVE_PATH,self.file_name)
+        self.file_path = os.path.join(SAVE_PATH,self.file_name)
         client.download_video(
             fp = self.file_path
         )
@@ -207,7 +207,7 @@ class Search:
             else:
                 self.query = f'{self.query} AND {sparam_str}'
 
-        self.query = f'{self.query} {_QUERY_SUFFIX}'
+        self.query = f'{self.query} {QUERY_SUFFIX}'
         self.req_url = Constants.VideoRoom.Queries.get('Query').replace(
             '"query":""',f'"query":"{self.query}"'
         )

@@ -9,8 +9,8 @@ from sources.videoroom import Clip, Search
 logging.config.fileConfig('logging.ini')
 logger = logging.getLogger(__name__)
 
-_FPS_DEFAULT = 30
-_SAVE_PATH = 'data'
+FPS_DEFAULT = 30
+SAVE_PATH = 'data'
 
 class Video:
     """
@@ -50,7 +50,7 @@ class Video:
         """
         """
         n_save_path = os.path.join(
-                _SAVE_PATH,
+                SAVE_PATH,
                 os.path.basename(self.file_path).replace(
                     '.mp4','_compressed.mp4'
                 )
@@ -61,7 +61,7 @@ class Video:
         )
         comp_clip.write_videofile(
             n_save_path,
-            fps = _FPS_DEFAULT
+            fps = FPS_DEFAULT
         )
         self.file_path = n_save_path
 
@@ -101,7 +101,7 @@ class VideoCompilation:
             )
         self.comp = concatenate_videoclips(self.compclips,method='compose')
         self.comp.write_videofile(
-            os.path.join(_SAVE_PATH,self.compname),
-            fps = _FPS_DEFAULT
+            os.path.join(SAVE_PATH,self.compname),
+            fps = FPS_DEFAULT
         )
 

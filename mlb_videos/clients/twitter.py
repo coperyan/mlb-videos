@@ -6,11 +6,11 @@ import logging
 import logging.config
 from requests_oauthlib import OAuth1
 
-_MEDIA_URL = 'https://upload.twitter.com/1.1/media/upload.json'
-_TWEET_URL = 'https://api.twitter.com/1.1/statuses/update.json'
+MEDIA_URL = 'https://upload.twitter.com/1.1/media/upload.json'
+TWEET_URL = 'https://api.twitter.com/1.1/statuses/update.json'
 
-_MEDIA_TYPE = 'video/mp4'
-_MEDIA_CATEGORY = 'tweet_video'
+MEDIA_TYPE = 'video/mp4'
+MEDIA_CATEGORY = 'tweet_video'
 
 logging.config.fileConfig('logging.ini')
 logger = logging.getLogger(__name__)
@@ -51,11 +51,11 @@ class Media:
         """
         r_data = {
             'command': 'INIT',
-            'media_type': _MEDIA_TYPE,
+            'media_type': MEDIA_TYPE,
             'total_bytes': self.file_bytes,
-            'media_category': _MEDIA_CATEGORY
+            'media_category': MEDIA_CATEGORY
         }
-        req = requests.post(_MEDIA_URL,data = r_data, auth = self.oauth)
+        req = requests.post(MEDIA_URL,data = r_data, auth = self.oauth)
         self.media_id = req.json()['media_id']
         logging.info(f'Initialized media upload of {self.file_name}')
 
@@ -77,7 +77,7 @@ class Media:
             files = {
                 'media': chunk
             }
-            req = requests.post(_MEDIA_URL, data = r_data, files = files, auth = self.oauth)
+            req = requests.post(MEDIA_URL, data = r_data, files = files, auth = self.oauth)
 
             if req.status_code < 200 or req.status_code > 299:
                 logging.critical(f'Media Upload Status Code: {req.status_code} - Message: {req.text}')
@@ -98,7 +98,7 @@ class Media:
             'command': 'FINALIZE',
             'media_id': self.media_id
         }
-        req = requests.post(_MEDIA_URL, data = r_data, auth = self.oauth)
+        req = requests.post(MEDIA_URL, data = r_data, auth = self.oauth)
         self.processing_info = req.json().get('processing_info',None)
         self._check_status()
 
@@ -127,7 +127,7 @@ class Media:
             'command': 'STATUS',
             'media_id': self.media_id
         }
-        req = requests.get(_MEDIA_URL, params = r_params, auth = self.oauth)
+        req = requests.get(MEDIA_URL, params = r_params, auth = self.oauth)
         self.processing_info = req.json().get('processing_info',None)
         self._check_status()
 
@@ -181,7 +181,7 @@ class Tweet:
             self._upload_media()
             r_data['media_ids'] = self.media_id
 
-        req = requests.post(_TWEET_URL, data = r_data, auth = self.oauth)
+        req = requests.post(TWEET_URL, data = r_data, auth = self.oauth)
         logging.info(f'Successfully uploaded tweet!')
 
     

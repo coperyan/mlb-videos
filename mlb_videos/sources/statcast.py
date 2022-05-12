@@ -13,14 +13,14 @@ from utils import get_statcast_date_range, parse_statcast_df
 logging.config.fileConfig('logging.ini')
 logger = logging.getLogger(__name__)
 
-_REQUEST_URL = 'https://baseballsavant.mlb.com/statcast_search/csv?all=true&hfPT=&hfAB=&hfBBT=&hfPR=&hfZ=&stadium=&hfBBL=&hfNewZones=&hfGT=R%7CPO%7CS%7C=&hfSea=&hfSit=&player_type=pitcher&hfOuts=&opponent=&pitcher_throws=&batter_stands=&hfSA=&game_date_gt={start_dt}&game_date_lt={end_dt}&team=&position=&hfRO=&home_road=&hfFlag=&metric_1=&hfInn=&min_pitches=0&min_results=0&group_by=name&sort_col=pitches&player_event_sort=h_launch_speed&sort_order=desc&min_abs=0&type=details&'
-_FILL_COLS = [
+REQUEST_URL = 'https://baseballsavant.mlb.com/statcast_search/csv?all=true&hfPT=&hfAB=&hfBBT=&hfPR=&hfZ=&stadium=&hfBBL=&hfNewZones=&hfGT=R%7CPO%7CS%7C=&hfSea=&hfSit=&player_type=pitcher&hfOuts=&opponent=&pitcher_throws=&batter_stands=&hfSA=&game_date_gt={start_dt}&game_date_lt={end_dt}&team=&position=&hfRO=&home_road=&hfFlag=&metric_1=&hfInn=&min_pitches=0&min_results=0&group_by=name&sort_col=pitches&player_event_sort=h_launch_speed&sort_order=desc&min_abs=0&type=details&'
+FILL_COLS = [
     'plate_x',
     'plate_z',
     'sz_bot',
     'sz_top'
 ]
-_SORT_VALS = [
+SORT_VALS = [
     'game_date',
     'game_pk',
     'at_bat_number',
@@ -55,7 +55,7 @@ class Statcast:
         """
         """
         resp = requests.get(
-            _REQUEST_URL.format(
+            REQUEST_URL.format(
                 start_dt = start_dt,
                 end_dt = end_dt
             ),timeout = None)
@@ -66,7 +66,7 @@ class Statcast:
             if 'error' in df.columns:
                 raise Exception(df['error'].values[0])
             else:
-                df = df.sort_values(_SORT_VALS,ascending=True)
+                df = df.sort_values(SORT_VALS,ascending=True)
         return df
 
     def _handle_requests(self):
@@ -119,7 +119,7 @@ class Statcast:
     def _fill_df_cols(self):
         """
         """
-        self.final_df[_FILL_COLS] = self.final_df[_FILL_COLS].fillna(0)
+        self.final_df[FILL_COLS] = self.final_df[FILL_COLS].fillna(0)
 
     def get_df(self):
         """
