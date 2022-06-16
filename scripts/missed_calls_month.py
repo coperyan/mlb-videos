@@ -42,16 +42,27 @@ pitches = Pitches(sc_df, PROJECT_PATH)
 pitches.calculate_missed_calls()
 pitches.save_df(name = 'pitches')
 
+#Remove other bad pitches
+bad_pitch_ids = [
+    '662381|1|4', '663150|60|3', '', ''
+]
+
 #Remove calls with speed <= 65 mph
 pitches.df = pitches.df[
     (pitches.df['release_speed'] >= 65)
 ]
+pitches.df = pitches.df[~
+    (pitches.df['pitch_id'].isin(bad_pitch_ids))
+]
+
 pitches.refresh_index()
+
+
 
 #Filter missed calls to criteria
 pitches.df = pitches.df[
     ((pitches.df['total_miss'] >= 3) & (pitches.df['description'] == 'called_strike')) | 
-    ((pitches.df['total_miss'] >= 4) & (pitches.df['description'] == 'ball'))
+    ((pitches.df['total_miss'] >= 5) & (pitches.df['description'] == 'ball'))
 ]
 pitches.refresh_index()
 
@@ -62,9 +73,9 @@ pitches.rank_pitches(
     name = 'total_miss_rank'
 )
 
-#Limit to top 25..
+#Limit to top 30..
 pitches.df = pitches.df[
-    (pitches.df['total_miss_rank'] <= 25)
+    (pitches.df['total_miss_rank'] <= 30)
 ]
 pitches.refresh_index()
 
