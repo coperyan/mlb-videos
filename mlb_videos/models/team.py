@@ -5,8 +5,9 @@ import logging.config
 
 import constants as Constants
 
-logging.config.fileConfig('logging.ini')
+logging.config.fileConfig("logging.ini")
 logger = logging.getLogger(__name__)
+
 
 class Team:
     def __init__(self, t: str = None):
@@ -21,18 +22,14 @@ class Team:
         """Filters down to values you want
         Calls out missing teams (if any)
         """
-        self.metadata = (
-            Constants.Team.Data.get(self.abbreviation,{})
-        )
+        self.metadata = Constants.Team.Data.get(self.abbreviation, {})
         if not self.metadata:
-            raise Exception('Team not found..')
+            raise Exception("Team not found..")
 
     def get_data(self):
-        """Return dict
-        """
+        """Return dict"""
         return self.metadata
 
     def get_df(self):
-        """Return df
-        """
+        """Return df"""
         self.df = pd.DataFrame([self.metadata])
