@@ -19,13 +19,13 @@ logging.config.fileConfig("logging.ini")
 logger = logging.getLogger(__name__)
 
 # Dates
-TITLE = "202306"
-TITLE_2 = "June 2023"
-MIN_DT = "2023-06-01"
-MAX_DT = "2023-06-30"
+TITLE = "202304"
+TITLE_2 = "April 2023"
+MIN_DT = "2023-04-01"
+MAX_DT = "2023-04-30"
 
 # Constants
-PROJECT_NAME = "missed_calls"
+PROJECT_NAME = "longest_homeruns"
 PROJECT_SUFFIX = TITLE
 PROJECT_ITER = f"{PROJECT_NAME}_{PROJECT_SUFFIX}"
 PROJECT_PURGE = True
@@ -40,32 +40,23 @@ sc_df = sc_client.get_df()
 # Creating pitches model with statcast DF
 pitches = Pitches(sc_df, PROJECT_PATH)
 
-# Calculate missed calls
-pitches.calculate_missed_calls()
+# Save DF
 pitches.save_df(name="pitches")
 
-# Remove other bad pitches
+# Remove bad pitches
 bad_pitch_ids = ["78384|62|5", "718617|64|3", "", ""]
 
-# Remove calls with speed <= 65 mph
-pitches.df = pitches.df[(pitches.df["release_speed"] >= 65)]
+# Limit to home runs
+pitches.df = pitches.df[pitches.df["events"] == "home_run"]
 pitches.df = pitches.df[~(pitches.df["pitch_id"].isin(bad_pitch_ids))]
-
 pitches.refresh_index()
 
 
-# Filter missed calls to criteria
-pitches.df = pitches.df[
-    ((pitches.df["total_miss"] >= 3) & (pitches.df["description"] == "called_strike"))
-    | ((pitches.df["total_miss"] >= 5) & (pitches.df["description"] == "ball"))
-]
-pitches.refresh_index()
+##Now, rank longest home runs
+pitches.rank_pitches(order_by="hit_distance_sc", ascending=False, name="distance_rank")
 
-##Now, rank worst misses
-pitches.rank_pitches(order_by="total_miss", ascending=False, name="total_miss_rank")
-
-# Limit to top 30..
-pitches.df = pitches.df[(pitches.df["total_miss_rank"] <= 25)]
+# Limit to top 25..
+pitches.df = pitches.df[(pitches.df["distance_rank"] <= 30)]
 pitches.refresh_index()
 
 # Getting videos

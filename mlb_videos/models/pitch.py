@@ -78,7 +78,6 @@ class Pitches:
         player_iterations = [("batter", batters), ("pitcher", pitchers)]
 
         for player_type in [x[0] for x in player_iterations if x[1]]:
-
             player_list = (
                 self.df[[player_type]].drop_duplicates()[player_type].to_list()
             )
@@ -106,7 +105,6 @@ class Pitches:
         team_iterations = ["home_team", "away_team"]
 
         for team_type in team_iterations:
-
             team_list = self.df[[team_type]].drop_duplicates()[team_type].to_list()
             teams = []
 
@@ -129,12 +127,15 @@ class Pitches:
         wrk = self.df.copy()
         wrk["video_path"] = None
         for index, row in wrk.iterrows():
-            iter_v = Video(p=row.to_dict(), path=self.path)
-            iter_v.download()
-            wrk.at[index, "video_path"] = iter_v.get_fp()
-            logging.info(
-                f"Completed download for video - {iter_v.play_id} - {index+1} of {len(wrk)}.."
-            )
+            try:
+                iter_v = Video(p=row.to_dict(), path=self.path)
+                iter_v.download()
+                wrk.at[index, "video_path"] = iter_v.get_fp()
+                logging.info(
+                    f"Completed download for video - {iter_v.play_id} - {index+1} of {len(wrk)}.."
+                )
+            except Exception as e:
+                logging.info(f"Failed to download video for {row['pitch_id']}")
         self.df = wrk
         logging.info(f"Completed video search & download for ALL pitches..")
 
