@@ -17,6 +17,9 @@ creds/*.json
 downloads/*.csv
 mlb_videos/data/*.csv
 tests/data/*.csv
+*2021.csv
+*2022.csv
+*2023.csv
 
 #Notes
 notes.txt
