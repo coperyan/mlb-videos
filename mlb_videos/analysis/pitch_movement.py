@@ -22,14 +22,7 @@ SRC_COLS = [
     "plate_z",
     "stand",
 ]
-COLS = [
-    "horizontal_miss_type",
-    "horizontal_miss",
-    "vertical_miss_type",
-    "vertical_miss",
-    "total_miss_type",
-    "total_miss",
-]
+COLS = ["horizontal_break", "vertical_break", "total_break", "total_break_abs"]
 
 
 def pitch_movement(p):
@@ -43,9 +36,8 @@ def pitch_movement(p):
     return (
         p.pfx_x * -12.00,
         p.pfx_z * 12.00,
-        (p.pfx_x * -12.00)
-        + (p.pfx_z * 12.00)(abs(p.pfx_x * -12.00))
-        + (abs(p.pfx_z * 12.00)),
+        (p.pfx_x * -12.00) + (p.pfx_z * 12.00),
+        (abs(p.pfx_x * -12.00)) + (abs(p.pfx_z * 12.00)),
     )
 
 
@@ -53,7 +45,7 @@ def calculate_movement(p):
     """Validates necessary fields
     Calculates movement items, returns in tuple
     """
-    if p.pfx_x.notnull() and p.pfx_z.notnull():
+    if not pd.isnull(p.pfx_x) and not pd.isnull(p.pfx_z):
         return pitch_movement(p)
     else:
         return (0, 0, 0, 0)
