@@ -32,3 +32,16 @@ test.iloc[0].to_dict()
 
 
 ##Slider -- look at horizontal break, start with negative numbers??
+
+"""
+This is the movement of his Sinker. 
+On average the ball moves 14 inches towards a right handed batter and drops 29 inches
+League average horizontal movement is 15 inches and 24 inches drop.
+
+This is the movement of his Slider.
+On average the ball moves 16 inches away from a right handed batter and drops 38 inches
+League average horizontal movement is 6 inches and 36 inches drop.
+
+His average release point is 5.3ft. from the ground.
+
+"""

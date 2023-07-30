@@ -17,3 +17,9 @@
 - Tqdm
 - Moviepy
 - (ffmpeg)
+
+
+## Docs
+- https://baseballsavant.mlb.com/csv-docs
+- https://www.mlb.com/glossary/statcast
+- 
