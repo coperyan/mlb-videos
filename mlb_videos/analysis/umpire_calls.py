@@ -28,6 +28,7 @@ _RETURN_COLS = [
     "vertical_miss",
     "total_miss_type",
     "total_miss",
+    "miss_delta_win_exp_impact",
 ]
 
 
@@ -44,6 +45,27 @@ def generate_coords(sz_bot, sz_top, plate_x, plate_z):
         "X": plate_x,
         "Y": plate_z,
     }
+
+
+def calc_adj_delta_win_exp(p: dict) -> float:
+    if p.description == "ball":
+        if p.inning_topbot == "Bot" and p.delta_home_win_exp > 0:
+            return abs(p.delta_home_win_exp)
+        elif p.inning_topbot == "Top" and p.delta_home_win_exp < 0:
+            return abs(p.delta_home_win_exp)
+        else:
+            return 0.00
+
+    elif p.description == "called_strike":
+        if p.inning_topbot == "Top" and p.delta_home_win_exp > 0:
+            return abs(p.delta_home_win_exp)
+        elif p.inning_topbot == "Bot" and p.delta_home_win_exp < 0:
+            return abs(p.delta_home_win_exp)
+        else:
+            return 0.00
+
+    else:
+        return 0.00
 
 
 def calc_strike_miss(p: dict) -> Tuple:
@@ -67,6 +89,11 @@ def calc_strike_miss(p: dict) -> Tuple:
         vertical_miss = 0
         vertical_miss_type = None
 
+    if horizontal_miss > 0 or vertical_miss > 0:
+        miss_delta_win_exp_impact = calc_adj_delta_win_exp(p)
+    else:
+        miss_delta_win_exp_impact = 0.00
+
     total_miss = round(horizontal_miss + vertical_miss, 2)
     total_miss_type = (
         "both"
@@ -84,6 +111,7 @@ def calc_strike_miss(p: dict) -> Tuple:
         vertical_miss,
         total_miss_type,
         total_miss,
+        miss_delta_win_exp_impact,
     )
 
 
@@ -107,13 +135,16 @@ def calc_ball_miss(p: dict) -> Tuple:
             vertical_miss = round((p.get("Y2") - p.get("Y")) * 12.00, 2)
             vertical_miss_type = "high"
 
+        miss_delta_win_exp_impact = calc_adj_delta_win_exp(p)
+
     else:
-        horizontal_miss, horizontal_miss_type, vertical_miss, vertical_miss_type = [
-            0,
-            None,
-            0,
-            None,
-        ]
+        (
+            horizontal_miss,
+            horizontal_miss_type,
+            vertical_miss,
+            vertical_miss_type,
+            miss_delta_win_exp_impact,
+        ) = [0, None, 0, None, 0.00]
 
     total_miss = round(min(horizontal_miss, vertical_miss), 2)
     total_miss_type = (
@@ -132,6 +163,7 @@ def calc_ball_miss(p: dict) -> Tuple:
         vertical_miss,
         total_miss_type,
         total_miss,
+        miss_delta_win_exp_impact,
     )
 
 

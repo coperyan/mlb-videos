@@ -32,3 +32,5 @@ mlb_videos/logs
 projects/
 
 *.csv
+
+client_secret.json
