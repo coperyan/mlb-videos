@@ -7,16 +7,16 @@ from moviepy.editor import (
     concatenate_videoclips,
 )
 
-from .filmroom import Video
-from .constants import _CAPTION_SETUP
+from filmroom import Video
+from constants import _CAPTION_SETUP
 
 _FPS_DEFAULT = 30
-_CAPTION_FONT = 100
+_CAPTION_FONT = 75
 _CLIP_SUBFOLDER = "clips"
 _COMP_SUBFOLDER = "compilations"
 
 
-class Clip:
+class CompClip:
     def __init__(self, pitch, metric_caption, player_caption):
         self.pitch = pitch
         self.metric_caption = metric_caption
@@ -79,7 +79,8 @@ class Clip:
             txt_clip = TextClip(
                 self.caption_text, fontsize=_CAPTION_FONT, color="white"
             )
-            txt_clip = txt_clip.set_pos(("center", "bottom"))
+            txt_clip = txt_clip.set_pos(("right", "bottom"))
+            txt_clip = txt_clip.margin(bottom=100, right=50, opacity=0)
             txt_clip = txt_clip.set_duration(2)
             self.clip_obj = CompositeVideoClip([clip_obj, txt_clip])
         else:

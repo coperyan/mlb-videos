@@ -206,7 +206,7 @@ _VIDEO_ROOM_FEED_TYPES = {
 }
 
 
-class Video:
+class Clip:
     def __init__(
         self,
         pitch: pd.Series,

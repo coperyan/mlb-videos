@@ -4,6 +4,8 @@ from datetime import datetime, date, timedelta
 
 from .constants import _SEASON_DATES, _DT_FORMAT
 
+_PROJECT_SUBFOLDERS = ["clips", "compilations", "data", "thumbnails", "logs"]
+
 
 def yesterday():
     return (datetime.now() - timedelta(days=1)).strftime(_DT_FORMAT)
@@ -14,17 +16,25 @@ def today():
 
 
 def setup_project(project_name: str):
+    pathlib.Path(f"{os.path.dirname(os.path.abspath(__file__))}/../projects").mkdir(
+        parents=False, exist_ok=True
+    )
     pathlib.Path(
         f"{os.path.dirname(os.path.abspath(__file__))}/../projects/{project_name}"
     ).mkdir(parents=False, exist_ok=True)
     pathlib.Path(
         f"{os.path.dirname(os.path.abspath(__file__))}/../projects/{project_name}/{today()}"
     ).mkdir(parents=False, exist_ok=True)
-    for subfolder in ["clips", "compilations", "data"]:
+    for subfolder in _PROJECT_SUBFOLDERS:
         pathlib.Path(
             f"{os.path.dirname(os.path.abspath(__file__))}/../projects/{project_name}/{today()}/{subfolder}"
         ).mkdir(parents=False, exist_ok=True)
     return f"{os.path.dirname(os.path.abspath(__file__))}/../projects/{project_name}/{today()}"
+
+
+def purge_project_files(project_name: str):
+    for subfolder in _PROJECT_SUBFOLDERS:
+        return None
 
 
 def get_date_range(start_dt: str, end_dt: str) -> list:

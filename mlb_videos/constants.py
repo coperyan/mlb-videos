@@ -4,6 +4,40 @@ from datetime import date
 
 _DT_FORMAT = "%Y-%m-%d"
 
+_PLAYLISTS = {
+    "Umpires - Worst Calls": "PL80vk26kxQPFETbnOeJ9rVHOZCHNFYd0g",
+    "Longest Home Runs": "PL80vk26kxQPHR4iz3yGqqGOW6VXasrvfZ",
+    "San Francisco Giants - Team Highlights": "PL80vk26kxQPEUB3XOnss7gdD2dvC_HJAU",
+    "San Francisco Giants - Player Highlights": "PL80vk26kxQPH4jqpfixZLVkXUncXoJ7mb",
+}
+
+_STANDARD_TAGS = [
+    "mlb",
+    "baseball",
+    "highlights",
+    "baseball highlights",
+    "mlb highlights",
+    "shohei ohtani",
+    "mookie betts",
+    "freddie freeman",
+    "ronald acuna jr",
+    "wander franco",
+    "corey seager",
+    "matt olson",
+    "ozzie albies",
+    "brett phillips",
+    "barry bonds",
+    "francisco lindor",
+    "max scherzer",
+    "ken griffrey jr",
+    "tony gwynn",
+    "juan soto",
+    "kyle tucker",
+    "julio rodriguez",
+    "elly de la cruz",
+    "fernando tatis jr",
+]
+
 _SEASON_DATES = {
     2008: (date(2008, 3, 25), date(2008, 10, 27)),
     2009: (date(2009, 4, 5), date(2009, 11, 4)),

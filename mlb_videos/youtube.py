@@ -10,6 +10,8 @@ from oauth2client.client import flow_from_clientsecrets
 from oauth2client.file import Storage
 from oauth2client.tools import argparser, run_flow
 
+from constants import _STANDARD_TAGS, _PLAYLISTS
+
 # Explicitly tell the underlying HTTP transport library not to retry, since
 # we are handling retry logic ourselves.
 httplib2.RETRIES = 1
@@ -33,7 +35,11 @@ _VALID_PRIVACY_STATUSES = ("public", "private", "unlisted")
 _CLIENT_SECRET_PATH = "credentials/client_secret.json"
 _OAUTH_FILE = "credentials/oauth.json"
 
-_YOUTUBE_UPLOAD_SCOPE = "https://www.googleapis.com/auth/youtube.upload"
+_SCOPES = [
+    "https://www.googleapis.com/auth/youtube.upload",
+    "https://www.googleapis.com/auth/youtube",
+    "https://www.googleapis.com/auth/youtube.force-ssl",
+]
 _YOUTUBE_API_SERVICE_NAME = "youtube"
 _YOUTUBE_API_VERSION = "v3"
 
@@ -43,15 +49,14 @@ class Client:
         self.file_path = file_path
         self.params = params
         self.thumbnail = self.params.get("thumbnail", None)
+        self.playlist = self.params.get("playlist", None)
         self.flow = None
         self.credentials = None
         self.service = None
         self._authenticate()
 
     def _authenticate(self):
-        self.flow = flow_from_clientsecrets(
-            _CLIENT_SECRET_PATH, scope=_YOUTUBE_UPLOAD_SCOPE
-        )
+        self.flow = flow_from_clientsecrets(_CLIENT_SECRET_PATH, scope=_SCOPES)
         storage = Storage(_OAUTH_FILE)
         self.credentials = storage.get()
 
@@ -83,9 +88,25 @@ class Client:
         return body
 
     def _set_thumbnail(self, video_id):
-        req = self.service.thumbnails().set(
-            videoId=video_id, media_body=MediaFileUpload(self.thumbnail)
+        req = (
+            self.service.thumbnails()
+            .set(videoId=video_id, media_body=self.thumbnail)
+            .execute()
         )
+
+    def _insert_playlist(self, video_id):
+        playlist_id = _PLAYLISTS.get(self.playlist)
+        body = {
+            # "kind": "youtube#playlistItem",
+            "snippet": {
+                "playlistId": playlist_id,
+                "resourceId": {"kind": "youtube#video", "videoId": video_id},
+            },
+        }
+        req = self.service.playlistItems().insert(
+            part=",".join(list(body.keys())), body=body
+        )
+        resp = req.execute()
 
     def _resumable_upload(self, request):
         response = None
@@ -100,6 +121,8 @@ class Client:
                     video_id = response.get("id")
                     if self.thumbnail:
                         self._set_thumbnail(video_id)
+                    if self.playlist:
+                        self._insert_playlist(video_id)
                     break
                 else:
                     raise Exception(f"Unexpected response: {response}")
@@ -130,3 +153,19 @@ class Client:
 
 ##https://github.com/pillargg/youtube-upload/blob/master/youtube_upload/client.py
 ##https://github.com/coperyan/mlb_videos/blob/main/mlb_videos/clients/youtube.py
+
+
+# test = Client(
+#     file_path="../projects/longest_homers/2023-08-16/compilations/longest_homers.mp4",
+#     params={
+#         "title": "Longest Home Runs of June 2023",
+#         "description": "Here are the top 25 furthest hit home runs from this past June. What a collection of dingers.",
+#         "tags": _STANDARD_TAGS + ["longest home runs", "homers"],
+#         "playlist": "Longest Home Runs",
+#     },
+# )
+# test_service = test.service
+# thumbnail_path = "../projects/longest_homers/2023-08-16/thumbnails/ohtani.png"
+# test.service.thumbnails().set(
+#     videoId="TVdajXQa5XU", media_body=thumbnail_path
+# ).execute()

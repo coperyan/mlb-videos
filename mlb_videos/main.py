@@ -2,18 +2,23 @@ import os
 import pandas as pd
 from typing import Union
 
+import logging
+import logging.config
+
+logger = logging.getLogger(__name__)
+
 from .constants import Teams
 from .statsapi import Game, Player
 from .statcast import Statcast
-from .filmroom import Video
-from .util import setup_project
+from .filmroom import Clip
 from .analysis.umpire_calls import get_ump_calls
-from .analysis.delta_win_exp import get_adj_delta_win_exp
+from .analysis.delta_win_exp import get_pitcher_batter_delta_win_exp
 from .analysis.pitch_movement import get_pitch_movement
+
 
 _ANALYSIS_DICT = {
     "umpire_calls": get_ump_calls,
-    "adj_delta_win_exp": get_adj_delta_win_exp,
+    "pitcher_batter_delta_win_exp": get_pitcher_batter_delta_win_exp,
     "pitch_movement": get_pitch_movement,
 }
 
@@ -22,6 +27,7 @@ class Data:
     def __init__(
         self,
         project_name: str,
+        project_path: str,
         start_date: str,
         end_date: str = None,
         enable_cache: bool = False,
@@ -29,11 +35,11 @@ class Data:
         player_info: bool = False,
         team_info: bool = False,
         analysis: list = None,
-        search_videos: bool = False,
-        search_and_download_videos: bool = False,
+        search_clips: bool = False,
+        search_and_download_clips: bool = False,
     ):
         self.project_name = project_name
-        self.local_path = setup_project(project_name)
+        self.local_path = project_path
         self.statcast_df = Statcast(
             start_date=start_date, end_date=end_date, enable_cache=enable_cache
         ).get_df()
@@ -47,10 +53,10 @@ class Data:
         if analysis:
             for mod in self.analysis:
                 self.transform_statcast(mod)
-        if search_and_download_videos:
-            self.get_videos(download=True, local_path=self.local_path)
-        elif search_videos:
-            self.get_videos(download=False)
+        if search_and_download_clips:
+            self.get_clips(download=True, local_path=self.local_path)
+        elif search_clips:
+            self.get_clips(download=False)
 
     def update_df(self, new_df: pd.DataFrame):
         self.df = new_df
@@ -124,22 +130,20 @@ class Data:
         for md in mod:
             self.df = _ANALYSIS_DICT.get(md)(self.df)
 
-    def get_videos(self, download: bool = False):
-        self.df["video_file_name"] = None
-        self.df["video_file_path"] = None
-        videos = []
+    def get_clips(self, download: bool = False):
+        self.df["clip_file_name"] = None
+        self.df["clip_file_path"] = None
+        clip = []
         for index, row in self.df.iterrows():
             try:
-                video = Video(
-                    pitch=row, download=download, download_path=self.local_path
+                clip = Clip(pitch=row, download=download, download_path=self.local_path)
+                self.df.at[index, "clip_file_name"] = clip.get_clip_filename()
+                self.df.at[index, "clip_file_path"] = (
+                    clip.get_clip_filepath() if download else None
                 )
-                self.df.at[index, "video_file_name"] = video.get_clip_filename()
-                self.df.at[index, "video_file_path"] = (
-                    video.get_clip_filepath() if download else None
-                )
-                videos.append(video)
+                clip.append(clip)
             except Exception as e:
-                print(f"Error getting video for {row.pitch_id} -- {e}")
+                print(f"Error getting clip for {row.pitch_id} -- {e}")
 
     def sort_df(self, fields: Union[list, str], ascending: Union[list, bool]):
         if isinstance(fields, str) and isinstance(ascending, bool):

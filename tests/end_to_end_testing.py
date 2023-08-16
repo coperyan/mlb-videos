@@ -1,20 +1,24 @@
 import os
+import logging
+import logging.config
 
-from mlb_videos.util import setup_project, purge_project_files
+_PROJECT_NAME = "test"
+
+logging.config.fileConfig("logging.ini", defaults={"project_name": _PROJECT_NAME})
+logger = logging.getLogger(__name__)
+
 from mlb_videos.main import Data
 from mlb_videos.video import Compilation
 
-_PROJECT_NAME = "longest_homers"
 
 mlbdata = Data(
-    project_name=_PROJECT_NAME, start_date="2023-06-01", end_date="2023-06-30"
+    project_name=_PROJECT_NAME, start_date="2023-04-01", end_date="2023-08-10"
 )
 mlbdata.query_df("events == 'home_run'")
 mlbdata.rank_df(
     name="distance_rank", group_by=None, fields=["hit_distance_sc"], ascending=[False]
 )
-mlbdata.query_df("distance_rank <= 25")
-mlbdata.sort_df(fields=["pitch_id"], ascending=True)
+mlbdata.query_df("distance_rank <= 1")
 mlbdata.get_videos(download=True)
 
 comp = Compilation(
