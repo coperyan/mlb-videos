@@ -8,9 +8,10 @@ try:
     print("About to switch dirs")
     # time.sleep(5)
 
-    os.chdir(r"C:/Users/rcope/Documents/Dev/mlb_videos/mlb_videos")
+    print(os.getcwd())
+    time.sleep(5)
 
-    # import sys
+    os.chdir(r"C:/Users/rcope/Documents/Dev/mlb_videos/mlb_videos")
 
     sys.path.append(f"C:/Users/rcope/Documents/Dev/mlb_videos/mlb_videos")
 
@@ -23,7 +24,7 @@ try:
     print("About to import utils")
     # time.sleep(5)
 
-    from util import setup_project, yesterday, twilio_message
+    from utils import setup_project, yesterday, twilio_message
 
     # yesterday_title = yesterday("%B %d, %Y")
     yesterday_title = "August 15, 2023"

@@ -14,7 +14,7 @@ from filmroom import FilmRoom
 from compilation import Compilation
 from youtube import YouTube
 
-from util import setup_project, purge_project_files
+from utils import setup_project, purge_project_files
 
 from analysis.umpire_calls import get_ump_calls
 from analysis.delta_win_exp import get_pitcher_batter_delta_win_exp

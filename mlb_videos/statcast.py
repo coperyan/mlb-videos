@@ -6,7 +6,7 @@ import pandas as pd
 from tqdm import tqdm
 import concurrent.futures
 
-from util import yesterday, get_date_range
+from utils import yesterday, get_date_range
 
 import logging
 import logging.config
