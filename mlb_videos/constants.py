@@ -9,6 +9,7 @@ _PLAYLISTS = {
     "Longest Home Runs": "PL80vk26kxQPHR4iz3yGqqGOW6VXasrvfZ",
     "San Francisco Giants - Team Highlights": "PL80vk26kxQPEUB3XOnss7gdD2dvC_HJAU",
     "San Francisco Giants - Player Highlights": "PL80vk26kxQPH4jqpfixZLVkXUncXoJ7mb",
+    "Hardest Hits": "PL80vk26kxQPHQ71k_9iCh0bddq9nE1Gi3",
 }
 
 _STANDARD_TAGS = [

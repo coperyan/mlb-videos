@@ -3,7 +3,7 @@ import logging
 import logging.config
 from mlb_videos.util import setup_project
 
-_PROJECT_NAME = "test"
+_PROJECT_NAME = "hardest_hits"
 project_path = setup_project(_PROJECT_NAME)
 
 logging.config.fileConfig("logging.ini", defaults={"project_name": _PROJECT_NAME})
@@ -14,8 +14,8 @@ from mlb_videos import MLBVideoClient
 test = MLBVideoClient(
     project_name=_PROJECT_NAME,
     project_path=project_path,
-    start_date="2023-03-01",
-    end_date="2023-08-16",
+    start_date="2023-07-01",
+    end_date="2023-07-31",
     enable_cache=False,
     game_info=False,
     player_info=False,
@@ -23,36 +23,36 @@ test = MLBVideoClient(
     analysis=False,
     queries=None,
     steps=[
-        {"type": "query", "params": {"query": "events == 'home_run'"}},
+        {"type": "query", "params": {"query": "description == 'hit_into_play'"}},
         {
             "type": "query",
             "params": {
-                "query": "(home_team == 'SF' & inning_topbot == 'Bot') | (away_team == 'SF' & inning_topbot == 'Top')"
+                "query": "events not in ('single','double','triple','home_run')"
             },
         },
         {
             "type": "rank",
             "params": {
-                "name": "distance_rank",
+                "name": "speed_rank",
                 "group_by": None,
-                "fields": ["hit_distance_sc"],
+                "fields": ["launch_speed"],
                 "ascending": [False],
                 "keep_sort": True,
             },
         },
-        {"type": "query", "params": {"query": "distance_rank <= 30"}},
+        {"type": "query", "params": {"query": "speed_rank <= 30"}},
     ],
     search_clips=False,
     download_clips=True,
     build_compilation=True,
-    compilation_params={"metric_caption": "hit_distance_sc"},
+    compilation_params={"metric_caption": "launch_speed"},
     upload_youtube=True,
     youtube_params={
-        "title": "San Francisco Giants | Longest Home Runs (MLB 2023)",
-        "description": "Here are the top 30 Giants home runs from this year so far.",
+        "title": "MLB | Hardest Hits (July 2023)",
+        "description": "Here are the top ~30 hardest hit balls in the majors last month.",
         "tags": ["longest home runs", "furthest home runs", "dingers"],
-        "playlist": "Longest Home Runs",
-        "thumbnail": "resources/jd_davis_batflip.jpg",
+        "playlist": "Hardest Hits",
+        "thumbnail": "resources/acuna.jpg",
     },
     purge_files=False,
 )
