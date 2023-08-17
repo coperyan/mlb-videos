@@ -46,7 +46,7 @@ class MLBVideoClient:
         filmroom_params: dict = {},
         build_compilation: bool = False,
         compilation_params: dict = {},
-        upload_youtube: bool = False,
+        youtube_upload: bool = False,
         youtube_params: dict = {},
         purge_files: bool = False,
     ):
@@ -65,7 +65,7 @@ class MLBVideoClient:
         self.filmroom_params = filmroom_params
         self.build_compilation = build_compilation
         self.compilation_params = compilation_params
-        self.upload_youtube = upload_youtube
+        self.youtube_upload = youtube_upload
         self.youtube_params = youtube_params
         self.purge_files = purge_files
         self.missing_videos = []
@@ -98,16 +98,16 @@ class MLBVideoClient:
 
         if build_compilation:
             self.create_compilation()
-        if upload_youtube:
+        if youtube_upload:
             self.upload_youtube()
 
         if purge_files:
-            self.purge_files()
+            self.purge_project_data()
 
     def _setup_project(self):
         setup_project(self.project_name)
 
-    def purge_files(self):
+    def purge_project_data(self):
         purge_project_files(self.project_name)
 
     def update_df(self, new_df: pd.DataFrame):
@@ -186,7 +186,7 @@ class MLBVideoClient:
 
     def _perform_filmroom_search(self, pitch: pd.Series, params: dict) -> Tuple:
         try:
-            clip = FilmRoom(pitch=pitch, local_path=self.project_path, **params)
+            clip = FilmRoom(pitch=pitch, local_path=self.local_path, **params)
             return clip.get_file_info()
         except Exception as e:
             logging.warning(f"FilmRoom search failed: {e}\n\n")
@@ -199,7 +199,9 @@ class MLBVideoClient:
         logging.info(f"Starting FilmRoom search for {len(self.df)} pitch(es)..")
 
         self.df[["video_file_name", "video_file_path"]] = self.df.apply(
-            lambda x: self._perform_filmroom_search(x), axis=1, result_type="expand"
+            lambda x: self._perform_filmroom_search(x, params),
+            axis=1,
+            result_type="expand",
         )
 
     def sort_df(self, fields: Union[list, str], ascending: Union[list, bool]):
@@ -287,15 +289,16 @@ class MLBVideoClient:
             self.compilation_params["metric_caption"] = metric_caption
         if player_caption:
             self.compilation_params["player_caption"] = player_caption
-        self.compilation = Compilation(
-            name=self.project_name,
+        comp = Compilation(
+            title=self.project_name,
             df=self.df,
             local_path=self.local_path,
             **self.compilation_params,
         )
+        self.comp_file = comp.get_comp_path()
 
     def upload_youtube(self, youtube_params: dict = None):
-        if not self.compilation:
+        if not self.comp_file:
             raise Exception("No compilation generated..")
 
         if not youtube_params and not self.youtube_params:
@@ -306,6 +309,4 @@ class MLBVideoClient:
         elif youtube_params:
             self.youtube_params = youtube_params
 
-        self.yt_client = YouTube(
-            file_path=self.compilation.comp_file, params=self.youtube_params
-        )
+        self.yt_client = YouTube(file_path=self.comp_file, params=self.youtube_params)

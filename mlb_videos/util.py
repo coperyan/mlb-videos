@@ -1,5 +1,7 @@
 import os
 import pathlib
+from twilio.rest import Client
+
 from datetime import datetime, date, timedelta
 
 from .constants import _SEASON_DATES, _DT_FORMAT
@@ -8,12 +10,12 @@ _PROJECT_SUBFOLDERS = ["clips", "compilations", "data", "thumbnails", "logs"]
 _PURGE_SUBFOLDERS = ["clips", "compilations", "data"]
 
 
-def yesterday():
-    return (datetime.now() - timedelta(days=1)).strftime(_DT_FORMAT)
+def yesterday(fmt: str = _DT_FORMAT):
+    return (datetime.now() - timedelta(days=1)).strftime(fmt)
 
 
-def today():
-    return datetime.now().strftime(_DT_FORMAT)
+def today(fmt: str = _DT_FORMAT):
+    return datetime.now().strftime(fmt)
 
 
 def setup_project(project_name: str):
@@ -64,3 +66,10 @@ def get_date_range(start_dt: str, end_dt: str) -> list:
             iter_date += timedelta(days=1)
 
     return dates
+
+
+def twilio_message(to: str = os.environ.get("TWILIO_TO_PHONE"), message: str = None):
+    client = Client(os.environ.get("TWILIO_SID"), os.environ.get("TWILIO_TOKEN"))
+    message = client.messages.create(
+        to=to, from_=os.environ.get("TWILIO_PHONE"), body=message
+    )

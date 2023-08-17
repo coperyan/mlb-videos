@@ -46,6 +46,11 @@ class Compilation:
         self.clip_objs = []
 
         self._check_clip_limit()
+        self._create_clip_objs()
+        self._build_compilation()
+
+    def get_comp_path(self):
+        return self.comp_file
 
     def _check_clip_limit(self):
         if len(self.df) > _CLIP_LIMIT:
@@ -88,8 +93,8 @@ class Compilation:
         return clip
 
     def _create_clip_obj(self, pitch: pd.Series):
-        if os.path.exists(pitch.file_path):
-            clip_obj = VideoFileClip(pitch.file_path, fps_source="fps")
+        if os.path.exists(pitch["video_file_path"]):
+            clip_obj = VideoFileClip(pitch["video_file_path"], fps_source="fps")
 
             if any([self.metric_caption, self.player_caption]):
                 caption_obj = self._build_caption_clip(self._generate_caption(pitch))
@@ -105,7 +110,7 @@ class Compilation:
                 self.clip_objs.append(self._create_clip_obj(row))
             except Exception as e:
                 logging.warning(
-                    f"Clip creation failed for: {row['pitch_id']}, skipping.."
+                    f"Clip creation failed for: {row['pitch_id']}, skipping..\n{e}\n"
                 )
                 pass
 

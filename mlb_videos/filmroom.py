@@ -219,12 +219,12 @@ class FilmRoom:
         pitch: pd.Series,
         local_path: str = None,
         query_params: list = _FILMROOM_DEFAULT_PARAMETERS,
-        feed: str = _FILMROOM_FEED_TYPES.get(_FILMROOM_DEFAULT_FEED, "Optimal"),
+        feed: str = _FILMROOM_DEFAULT_FEED,
         download: bool = _FILMROOM_DEFAULT_DOWNLOAD,
     ):
         self.pitch = pitch
         self.query_params = query_params
-        self.feed = feed
+        self.feed = _FILMROOM_FEED_TYPES.get(_FILMROOM_DEFAULT_FEED, "Optimal")
         self.download = download
         self.download_path = f"{local_path}/{_FILMROOM_SUBFOLDER}"
         self.play_id = None

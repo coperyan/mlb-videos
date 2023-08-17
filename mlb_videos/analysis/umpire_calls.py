@@ -48,19 +48,19 @@ def generate_coords(sz_bot, sz_top, plate_x, plate_z):
 
 
 def calc_adj_delta_win_exp(p: dict) -> float:
-    if p.description == "ball":
-        if p.inning_topbot == "Bot" and p.delta_home_win_exp > 0:
-            return abs(p.delta_home_win_exp)
-        elif p.inning_topbot == "Top" and p.delta_home_win_exp < 0:
-            return abs(p.delta_home_win_exp)
+    if p.get("description") == "ball":
+        if p.get("inning_topbot") == "Bot" and p.get("delta_home_win_exp") > 0:
+            return abs(p.get("delta_home_win_exp"))
+        elif p.get("inning_topbot") == "Top" and p.get("delta_home_win_exp") < 0:
+            return abs(p.get("delta_home_win_exp"))
         else:
             return 0.00
 
-    elif p.description == "called_strike":
-        if p.inning_topbot == "Top" and p.delta_home_win_exp > 0:
-            return abs(p.delta_home_win_exp)
-        elif p.inning_topbot == "Bot" and p.delta_home_win_exp < 0:
-            return abs(p.delta_home_win_exp)
+    elif p.get("description") == "called_strike":
+        if p.get("inning_topbot") == "Top" and p.get("delta_home_win_exp") > 0:
+            return abs(p.get("delta_home_win_exp"))
+        elif p.get("inning_topbot") == "Bot" and p.get("delta_home_win_exp") < 0:
+            return abs(p.get("delta_home_win_exp"))
         else:
             return 0.00
 
@@ -169,11 +169,11 @@ def calc_ball_miss(p: dict) -> Tuple:
 
 def calculate_miss(p: pd.Series) -> Tuple:
     if any(pd.isnull(v) for v in (p.plate_x, p.plate_z, p.sz_bot, p.sz_top)):
-        return [None, 0.00] * 3
+        return ([None, 0.00] * 3) + [0.00]
     elif any(v == 0 for v in (p.plate_x, p.plate_z, p.sz_bot, p.sz_top)):
-        return [None, 0.00] * 3
+        return ([None, 0.00] * 3) + [0.00]
     elif p.description not in _DESCRIPTIONS:
-        return [None, 0.00] * 3
+        return ([None, 0.00] * 3) + [0.00]
     else:
         d = {x: getattr(p, x) for x in _USED_COLS}
         d.update(generate_coords(p.sz_bot, p.sz_top, p.plate_x, p.plate_z))

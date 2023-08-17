@@ -82,7 +82,7 @@ class YouTube:
             "snippet": {
                 "title": self.params.get("title", "Test Video"),
                 "description": self.params.get("description", "This is a test video."),
-                "tags": self.params.get("tags", ["test", "python", "video"]),
+                "tags": self.params.get("tags", []) + _STANDARD_TAGS,
                 "defaultLanguage": self.params.get("language", "en_US"),
                 "categoryId": self.params.get("category", "22"),
             },
