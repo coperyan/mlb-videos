@@ -26,17 +26,17 @@ def setup_project(project_name: str, project_date: str = today()):
         f"{os.path.dirname(os.path.abspath(__file__))}/../projects/{project_name}"
     ).mkdir(parents=False, exist_ok=True)
     pathlib.Path(
-        f"{os.path.dirname(os.path.abspath(__file__))}/../projects/{project_name}/{today()}"
+        f"{os.path.dirname(os.path.abspath(__file__))}/../projects/{project_name}/{project_date}"
     ).mkdir(parents=False, exist_ok=True)
     for subfolder in _PROJECT_SUBFOLDERS:
         pathlib.Path(
-            f"{os.path.dirname(os.path.abspath(__file__))}/../projects/{project_name}/{today()}/{subfolder}"
+            f"{os.path.dirname(os.path.abspath(__file__))}/../projects/{project_name}/{project_date}/{subfolder}"
         ).mkdir(parents=False, exist_ok=True)
-    return f"{os.path.dirname(os.path.abspath(__file__))}/../projects/{project_name}/{today()}"
+    return f"{os.path.dirname(os.path.abspath(__file__))}/../projects/{project_name}/{project_date}"
 
 
 def purge_project_files(project_name: str, project_date: str = today()):
-    project_path = f"{os.path.dirname(os.path.abspath(__file__))}/../projects/{project_name}/{today()}"
+    project_path = f"{os.path.dirname(os.path.abspath(__file__))}/../projects/{project_name}/{tproject_date}"
     for subfolder in _PURGE_SUBFOLDERS:
         iter_path = os.path.join(project_path, subfolder)
         for file in os.listdir(iter_path):

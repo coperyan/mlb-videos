@@ -37,8 +37,11 @@ _RETRIABLE_EXCEPTIONS = (
 _RETRIABLE_STATUS_CODES = [500, 502, 503, 504]
 _VALID_PRIVACY_STATUSES = ("public", "private", "unlisted")
 
-_CLIENT_SECRET_PATH = "credentials/client_secret.json"
-_OAUTH_FILE = "credentials/oauth.json"
+# _CLIENT_SECRET_PATH = "credentials/client_secret.json"
+# _OAUTH_FILE = "credentials/oauth.json"
+
+_CLIENT_SECRET_PATH = os.environ.get("YOUTUBE_API_SECRET", "client_secret.json")
+_OAUTH_PATH = os.environ.get("YOUTUBE_API_OATH", "oauth.json")
 
 _SCOPES = [
     "https://www.googleapis.com/auth/youtube.upload",
@@ -162,19 +165,3 @@ class YouTube:
 
 ##https://github.com/pillargg/youtube-upload/blob/master/youtube_upload/client.py
 ##https://github.com/coperyan/mlb_videos/blob/main/mlb_videos/clients/youtube.py
-
-
-# test = Client(
-#     file_path="../projects/longest_homers/2023-08-16/compilations/longest_homers.mp4",
-#     params={
-#         "title": "Longest Home Runs of June 2023",
-#         "description": "Here are the top 25 furthest hit home runs from this past June. What a collection of dingers.",
-#         "tags": _STANDARD_TAGS + ["longest home runs", "homers"],
-#         "playlist": "Longest Home Runs",
-#     },
-# )
-# test_service = test.service
-# thumbnail_path = "../projects/longest_homers/2023-08-16/thumbnails/ohtani.png"
-# test.service.thumbnails().set(
-#     videoId="TVdajXQa5XU", media_body=thumbnail_path
-# ).execute()

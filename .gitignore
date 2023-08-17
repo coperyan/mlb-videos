@@ -43,3 +43,13 @@ resources/*
 
 credentials/*
 !credentials/__init__.py
+
+
+
+*.oauth.json
+*.client_secret.json
+
+
+resources/*.jpg
+resoures/*.png
+

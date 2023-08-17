@@ -8,10 +8,8 @@ import logging.config
 
 logger = logging.getLogger(__name__)
 
-from constants import _DT_FORMAT
-from queries import (
-    _FILMROOM_QUERIES,
-)
+from constants import _DT_FORMAT, _FILMROOM_QUERIES
+
 
 _FILMROOM_CHUNK_SIZE = 1024
 _FILMROOM_QUERY_SUFFIX = "Order By Timestamp DESC"
