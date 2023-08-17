@@ -11,6 +11,11 @@ from .constants import Teams
 from .statsapi import Game, Player
 from .statcast import Statcast
 from .filmroom import Clip
+from .video import Compilation
+from .youtube import YouTube
+
+from .util import setup_project, purge_project_files
+
 from .analysis.umpire_calls import get_ump_calls
 from .analysis.delta_win_exp import get_pitcher_batter_delta_win_exp
 from .analysis.pitch_movement import get_pitch_movement
@@ -23,7 +28,7 @@ _ANALYSIS_DICT = {
 }
 
 
-class Data:
+class MLBVideoClient:
     def __init__(
         self,
         project_name: str,
@@ -35,15 +40,42 @@ class Data:
         player_info: bool = False,
         team_info: bool = False,
         analysis: list = None,
+        queries: list = None,
+        steps: list = None,
         search_clips: bool = False,
-        search_and_download_clips: bool = False,
+        download_clips: bool = False,
+        build_compilation: bool = False,
+        compilation_params: dict = {},
+        upload_youtube: bool = False,
+        youtube_params: dict = {},
+        purge_files: bool = False,
     ):
         self.project_name = project_name
         self.local_path = project_path
+        self.start_date = start_date
+        self.end_date = end_date
+        self.enable_cache = enable_cache
+        self.game_info = game_info
+        self.player_info = player_info
+        self.team_info = team_info
+        self.analysis = analysis
+        self.queries = queries
+        self.steps = steps
+        self.search_clips = search_clips
+        self.download_clips = download_clips
+        self.build_compilation = build_compilation
+        self.compilation_params = compilation_params
+        self.upload_youtube = upload_youtube
+        self.youtube_params = youtube_params
+        self.purge_files = purge_files
+
+        # self._setup_project()
+
         self.statcast_df = Statcast(
             start_date=start_date, end_date=end_date, enable_cache=enable_cache
         ).get_df()
         self.df = self.statcast_df.copy()
+
         if game_info:
             self.add_game_info()
         if player_info:
@@ -53,31 +85,52 @@ class Data:
         if analysis:
             for mod in self.analysis:
                 self.transform_statcast(mod)
-        if search_and_download_clips:
-            self.get_clips(download=True, local_path=self.local_path)
+
+        if queries:
+            self._perform_queries()
+
+        if steps:
+            self._perform_steps()
+
+        if download_clips:
+            self.get_clips(download=True)
         elif search_clips:
             self.get_clips(download=False)
+
+        if build_compilation:
+            self.create_compilation()
+        if upload_youtube:
+            self.upload_youtube()
+
+        if purge_files:
+            self.purge_files()
+
+    def _setup_project(self):
+        setup_project(self.project_name)
+
+    def purge_files(self):
+        purge_project_files(self.project_name)
 
     def update_df(self, new_df: pd.DataFrame):
         self.df = new_df
 
     def add_game_info(self):
-        games = Game(list(set(self.statcast_df["game_pk"].values.tolist())))
+        game_list = list(set(self.statcast_df["game_pk"].values.tolist()))
+        logging.info(f"Getting game info for {len(game_list)} game(s)..")
+        games = Game(game_list)
         game_df = games.get_df()
         game_df.rename(
             columns={c: f"game_{c}" for c in game_df.columns.values if c != "game_pk"}
         )
         self.df = self.df.merge(game_df, how="left", on="game_pk")
+        logging.info(f"Added game info.")
 
     def add_player_info(self):
-        players = Player(
-            list(
-                set(
-                    self.df["batter"].values.tolist()
-                    + self.df["pitcher"].values.tolist()
-                )
-            )
+        player_list = list(
+            set(self.df["batter"].values.tolist() + self.df["pitcher"].values.tolist())
         )
+        logging.info(f"Getting player info for {len(player_list)} player(s)..")
+        players = Player(player_list)
         player_df = players.get_df()
 
         self.df = self.df.merge(
@@ -100,6 +153,7 @@ class Data:
             how="left",
             on="pitcher",
         )
+        logging.info(f"Added player info.")
 
     def add_team_info(self):
         team_df = pd.json_normalize([v for _, v in Teams.items()])
@@ -129,21 +183,29 @@ class Data:
             mod = [mod]
         for md in mod:
             self.df = _ANALYSIS_DICT.get(md)(self.df)
+            logging.info(f"Transformed DF: {md}")
 
     def get_clips(self, download: bool = False):
+        self.search_clips = True
+        self.download_clips = True if download else False
+
         self.df["clip_file_name"] = None
         self.df["clip_file_path"] = None
-        clip = []
+        clips = []
         for index, row in self.df.iterrows():
+            logging.info(f"Getting clips for pitchID {row['pitch_id']}")
             try:
                 clip = Clip(pitch=row, download=download, download_path=self.local_path)
                 self.df.at[index, "clip_file_name"] = clip.get_clip_filename()
                 self.df.at[index, "clip_file_path"] = (
                     clip.get_clip_filepath() if download else None
                 )
-                clip.append(clip)
+                clips.append(clip)
+                logging.info(
+                    f"Completed {100*round(index/len(self.df),0)}% ({index}/{len(self.df)}) searches.."
+                )
             except Exception as e:
-                print(f"Error getting clip for {row.pitch_id} -- {e}")
+                logging.warning(f"Error getting clip for {row.pitch_id} -- {e}")
 
     def sort_df(self, fields: Union[list, str], ascending: Union[list, bool]):
         if isinstance(fields, str) and isinstance(ascending, bool):
@@ -157,9 +219,11 @@ class Data:
         self.df = self.df.sort_values(by=fields, ascending=ascending).reset_index(
             drop=True
         )
+        logging.info(f"Sorted df: {fields}")
 
     def query_df(self, query: str):
         self.df = self.df.query(query)
+        logging.info(f"Applied query to DF: {query}")
 
     def rank_df(
         self,
@@ -167,6 +231,7 @@ class Data:
         group_by: Union[list, str],
         fields: Union[list, str],
         ascending: Union[list, bool],
+        keep_sort: bool = False,
     ):
         if isinstance(group_by, str):
             group_by = [group_by]
@@ -184,7 +249,53 @@ class Data:
         else:
             self.df[name] = self.df[name].cumsum()
 
+        if keep_sort:
+            self.df = self.df.sort_values(by=["pitch_id"], ascending=True)
         self.df = self.df.reset_index(drop=True)
+        logging.info(f"Added rank field: {name} to DF")
 
     def get_df(self) -> pd.DataFrame:
         return self.df
+
+    def _perform_queries(self):
+        for query in self.queries:
+            self.query_df(query)
+
+    def _perform_steps(self):
+        for step in self.steps:
+            if step.get("type") == "query":
+                self.query_df(**step.get("params"))
+            elif step.get("type") == "rank":
+                self.rank_df(**step.get("params"))
+        self.df = self.df.reset_index(drop=True)
+
+    def create_compilation(
+        self, metric_caption: str = None, player_caption: str = None
+    ):
+        self.build_compilation = True
+        if metric_caption:
+            self.compilation_params["metric_caption"] = metric_caption
+        if player_caption:
+            self.compilation_params["player_caption"] = player_caption
+        self.compilation = Compilation(
+            name=self.project_name,
+            df=self.df,
+            local_path=self.local_path,
+            **self.compilation_params,
+        )
+
+    def upload_youtube(self, youtube_params: dict = None):
+        if not self.compilation:
+            raise Exception("No compilation generated..")
+
+        if not youtube_params and not self.youtube_params:
+            raise Exception("Must pass a valid params dict for YT Upload..")
+        elif youtube_params and self.youtube_params:
+            for k, v in youtube_params.items():
+                self.youtube_params[k] = v
+        elif youtube_params:
+            self.youtube_params = youtube_params
+
+        self.yt_client = YouTube(
+            file_path=self.compilation.comp_file, params=self.youtube_params
+        )

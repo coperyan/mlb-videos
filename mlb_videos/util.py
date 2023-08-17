@@ -5,6 +5,7 @@ from datetime import datetime, date, timedelta
 from .constants import _SEASON_DATES, _DT_FORMAT
 
 _PROJECT_SUBFOLDERS = ["clips", "compilations", "data", "thumbnails", "logs"]
+_PURGE_SUBFOLDERS = ["clips", "compilations", "data"]
 
 
 def yesterday():
@@ -33,8 +34,11 @@ def setup_project(project_name: str):
 
 
 def purge_project_files(project_name: str):
-    for subfolder in _PROJECT_SUBFOLDERS:
-        return None
+    project_path = f"{os.path.dirname(os.path.abspath(__file__))}/../projects/{project_name}/{today()}"
+    for subfolder in _PURGE_SUBFOLDERS:
+        iter_path = os.path.join(project_path, subfolder)
+        for file in os.listdir(iter_path):
+            os.remove(os.path.join(iter_path, file))
 
 
 def get_date_range(start_dt: str, end_dt: str) -> list:

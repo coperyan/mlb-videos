@@ -7,16 +7,21 @@ from moviepy.editor import (
     concatenate_videoclips,
 )
 
-from .filmroom import Video
 from .constants import _CAPTION_SETUP
+
+import logging
+import logging.config
+
+logger = logging.getLogger(__name__)
 
 _FPS_DEFAULT = 30
 _CAPTION_FONT = 75
-_CLIP_SUBFOLDER = "clips"
+_CLIP_LIMIT = 100
+# _CLIP_SUBFOLDER = "clips"
 _COMP_SUBFOLDER = "compilations"
 
 
-class CompClip:
+class CompilationItem:
     def __init__(self, pitch, metric_caption, player_caption):
         self.pitch = pitch
         self.metric_caption = metric_caption
@@ -69,7 +74,7 @@ class CompClip:
 
     def _check_local_clip(self):
         if not os.path.exists(self.clip_path):
-            print(f"Missing local file: {self.clip_path}")
+            logging.info(f"Missing local file: {self.clip_path}")
         else:
             pass
 
@@ -100,6 +105,8 @@ class Compilation:
         self.comp_folder = os.path.join(local_path, _COMP_SUBFOLDER)
         self.comp_file = os.path.join(self.comp_folder, f"{self.name}.mp4")
         self.df = df
+        if len(self.df) > _CLIP_LIMIT:
+            raise Exception(f"Exceeded Clip Limit: {len(self.df)}")
         self.clip_ct = len(df)
         self.clip_objs = []
         self.metric_caption = metric_caption
@@ -109,7 +116,7 @@ class Compilation:
 
     def create_clip_objs(self):
         self.clip_objs = [
-            Clip(row, self.metric_caption, self.player_caption)
+            CompilationItem(row, self.metric_caption, self.player_caption)
             for _, row in self.df.iterrows()
         ]
 
@@ -118,3 +125,23 @@ class Compilation:
             [x.clip_obj for x in self.clip_objs], method="compose"
         )
         comp.write_videofile(self.comp_file, fps=_FPS_DEFAULT)
+
+
+# clip_objs = [
+#     CompilationItem(
+#         {"video_file_path": os.path.join("projects/test/2023-08-17/clips", x)},
+#         None,
+#         None,
+#     )
+#     for x in os.listdir("projects/test/2023-08-17/clips")
+# ]
+
+# for clip in clip_objs:
+#     txt_clip = TextClip("Dinger_ft", fontsize=_CAPTION_FONT, color="white")
+#     txt_clip = txt_clip.set_pos(("right", "bottom"))
+#     txt_clip = txt_clip.margin(bottom=100, right=50, opacity=0)
+#     txt_clip = txt_clip.set_duration(2)
+#     clip.clip_obj = CompositeVideoClip([clip.clip_obj, txt_clip])
+
+# comp = concatenate_videoclips([x.clip_obj for x in clip_objs], method="compose")
+# comp.write_videofile("projects/test/2023-08-17/compilations/test.mp4",fps=_FPS_DEFAULT)

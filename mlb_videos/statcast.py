@@ -8,6 +8,11 @@ import concurrent.futures
 
 from .util import yesterday, get_date_range
 
+import logging
+import logging.config
+
+logger = logging.getLogger(__name__)
+
 # from constants import _STATCAST_DATE_FORMATS
 
 _REQUEST_URL = "https://baseballsavant.mlb.com/statcast_search/csv?all=true&hfPT=&hfAB=&hfBBT=&hfPR=&hfZ=&stadium=&hfBBL=&hfNewZones=&hfGT=R%7CPO%7CS%7C=&hfSea=&hfSit=&player_type=pitcher&hfOuts=&opponent=&pitcher_throws=&batter_stands=&hfSA=&game_date_gt={0}&game_date_lt={0}&team=&position=&hfRO=&home_road=&hfFlag=&metric_1=&hfInn=&min_pitches=0&min_results=0&group_by=name&sort_col=pitches&player_event_sort=h_launch_speed&sort_order=desc&min_abs=0&type=details&"
@@ -19,7 +24,7 @@ _UNIQUE_IDENTIFIER_NAME = "pitch_id"
 _UNIQUE_IDENTIFIER_DELIMITER = "|"
 
 _REQUEST_TIMEOUT = None
-_CACHE_PATH = f"{os.path.dirname(os.path.abspath(__file__))}/data/statcast/cache"
+_CACHE_PATH = f"{os.path.dirname(os.path.abspath(__file__))}/cache/statcast"
 
 _STATCAST_DATE_FORMATS = [
     (re.compile(r"^\d{4}-\d{1,2}-\d{1,2}$"), "%Y-%m-%d"),
@@ -82,6 +87,7 @@ class Statcast:
             self.save_df()
 
     def initiate_requests(self):
+        logging.info(f"Getting Statcast data")
         if self.enable_cache:
             self.cache_dates = []
             self.non_cache_dates = []
@@ -92,7 +98,9 @@ class Statcast:
                     self.cache_dates.append(dt)
                 else:
                     self.non_cache_dates.append(dt)
-            print(f"Found {len(self.non_cache_dates)} date(s) not covered by cache")
+            logging.info(
+                f"Found {len(self.non_cache_dates)} date(s) not covered by cache"
+            )
             self.get_cached_data()
             self.concurrent_requests_specific_dates(self.non_cache_dates)
         else:
@@ -126,13 +134,14 @@ class Statcast:
                 for future in concurrent.futures.as_completed(futures):
                     self.df_list.append(future.result())
                     progress.update(1)
-        print(f"Acquired {len(self.df_list)} missing day(s) of data")
+        logging.info(f"Acquired {len(self.df_list)} missing day(s) of data")
 
     def get_cached_data(self):
         for dt in self.cache_dates:
             df = pd.read_csv(f"{_CACHE_PATH}/{dt.replace('-','')}.csv")
+            df["game_date"] = pd.to_datetime(df["game_date"])
             self.df_list.append(df)
-        print(f"Loaded in {len(self.df_list)} day(s) of cached data")
+        logging.info(f"Loaded in {len(self.df_list)} day(s) of cached data")
 
     def create_df(self) -> None:
         if self.df_list:

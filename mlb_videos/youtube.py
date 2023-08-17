@@ -12,6 +12,11 @@ from oauth2client.tools import argparser, run_flow
 
 from .constants import _STANDARD_TAGS, _PLAYLISTS
 
+import logging
+import logging.config
+
+logger = logging.getLogger(__name__)
+
 # Explicitly tell the underlying HTTP transport library not to retry, since
 # we are handling retry logic ourselves.
 httplib2.RETRIES = 1
@@ -44,7 +49,7 @@ _YOUTUBE_API_SERVICE_NAME = "youtube"
 _YOUTUBE_API_VERSION = "v3"
 
 
-class Client:
+class YouTube:
     def __init__(self, file_path: str, params: dict = None):
         self.file_path = file_path
         self.params = params
@@ -54,6 +59,7 @@ class Client:
         self.credentials = None
         self.service = None
         self._authenticate()
+        self.upload()
 
     def _authenticate(self):
         self.flow = flow_from_clientsecrets(_CLIENT_SECRET_PATH, scope=_SCOPES)
@@ -93,6 +99,7 @@ class Client:
             .set(videoId=video_id, media_body=self.thumbnail)
             .execute()
         )
+        logging.info(f"Successfully added thumbnail: {self.thumbnail}")
 
     def _insert_playlist(self, video_id):
         playlist_id = _PLAYLISTS.get(self.playlist)
@@ -107,6 +114,7 @@ class Client:
             part=",".join(list(body.keys())), body=body
         )
         resp = req.execute()
+        logging.info(f"Inserted video into playlist: {self.playlist}")
 
     def _resumable_upload(self, request):
         response = None
@@ -119,6 +127,7 @@ class Client:
                 _, response = request.next_chunk()
                 if "id" in response:
                     video_id = response.get("id")
+                    logging.info(f"Successfully uploaded videoID: {video_id}")
                     if self.thumbnail:
                         self._set_thumbnail(video_id)
                     if self.playlist:
@@ -135,11 +144,11 @@ class Client:
                 error = f"Retriable error occured: {e}"
 
             if error is not None:
-                print(error)
+                logging.info(error)
                 retry += 1
                 if retry > _MAX_RETRIES:
                     raise Exception(f"Exceeded max retries: {error}")
-                print(f"Sleeping 5 seconds and retrying..")
+                logging.info(f"Sleeping 5 seconds and retrying..")
                 time.sleep(5)
 
     def upload(self):

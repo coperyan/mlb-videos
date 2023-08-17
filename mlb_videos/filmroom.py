@@ -3,6 +3,11 @@ import requests
 import pandas as pd
 from typing import Union, Dict
 
+import logging
+import logging.config
+
+logger = logging.getLogger(__name__)
+
 from .constants import _DT_FORMAT
 from .queries import (
     _VIDEO_ROOM_QUERIES,
@@ -233,9 +238,10 @@ class Clip:
         if self.download:
             self.download_clip()
 
-    def _build_search_query(self):
+    def _build_search_query(self, exclude_params: list = []):
         query = ""
-        for param in self.params:
+        params = [x for x in self.params if x not in exclude_params]
+        for param in params:
             param_ref = next(
                 filter(lambda x: x["Name"] == param, _VIDEO_ROOM_PARAMETERS)
             )
@@ -256,6 +262,7 @@ class Clip:
         self.search_url = _VIDEO_ROOM_QUERIES.get("Search").replace(
             '"query":""', f'"query":"{query}"'
         )
+        logging.info(f"Built search query, excluded param(s): {exclude_params}")
 
     def _make_request(
         self,
@@ -277,12 +284,14 @@ class Clip:
             if resp_path:
                 for rp in resp_path:
                     data = data.get(rp)
+            logging.info(f"Performed {request_type} query..")
             return data
         elif download:
             with open(download_path, "wb") as f:
                 for chunk in resp.iter_content(chunk_size=_VIDEO_ROOM_CHUNK_SIZE):
                     if chunk:
                         f.write(chunk)
+                logging.info(f"Wrote clip to local store: {download_path}")
 
     def _clip_metadata(self, data: dict) -> dict:
         metadata = {}
@@ -321,7 +330,7 @@ class Clip:
             self.metadata["feeds"] = feeds
             self.metadata["feed_choice"] = feed_choice
             self.feed_choice = feed_choice
-            print(f"Feed Choice: {self.feed_choice}")
+            logging.info(f"Feed Choice: {self.feed_choice}")
         else:
             raise Exception("No valid feeds found.")
 
@@ -329,9 +338,17 @@ class Clip:
         search_json = self._make_request(
             self.search_url, request_type="Search", return_json=True
         )
+        if len(search_json) == 0:
+            self._build_search_query(exclude_params=["inning"])
+            search_json = self._make_request(
+                self.search_url, request_type="Search", return_json=True
+            )
         clip_ct = len(search_json)
-        self.play_id = search_json[0]["mediaPlayback"][0]["slug"]
-        print(f"Found {clip_ct} clip(s) for {self.play_id}")
+        if clip_ct > 0:
+            self.play_id = search_json[0]["mediaPlayback"][0]["slug"]
+            logging.info(f"Found {clip_ct} clip(s) for {self.play_id}")
+        else:
+            logging.warning(f"Search query did not return any clips..")
 
     def get_clip(self):
         clip_json = self._make_request(
@@ -376,6 +393,22 @@ class Clip:
                     download_path=self.file_path,
                 )
             except Exception as e:
-                print("Downloading failed..")
+                logging.warning("Downloading failed..")
         else:
             pass
+
+
+# clips = []
+# for index, row in df.iterrows():
+#     try:
+#         iter_clip = Clip(
+#             pitch=row, download=True, download_path="../projects/test/2023-08-17/clips"
+#         )
+#         iter_clip._build_search_query()
+#         iter_clip.perform_search()
+#         iter_clip.get_clip()
+#         iter_clip.download_clip()
+#     except Exception as e:
+#         print(row["pitch_id"] + "\n" + str(e))
+#         pass
+#     clips.append(iter_clip)

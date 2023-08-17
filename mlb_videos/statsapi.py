@@ -5,6 +5,11 @@ from tqdm import tqdm
 import concurrent.futures
 from typing import Union
 
+import logging
+import logging.config
+
+logger = logging.getLogger(__name__)
+
 _GAME_URL = "https://statsapi.mlb.com/api/v1.1/game/{0}/feed/live"
 _PLAYER_URL = "https://statsapi.mlb.com/api/v1/people/{0}"
 _PLAYER_SITE_URL = "https://www.mlb.com/player/{0}"
