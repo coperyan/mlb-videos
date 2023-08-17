@@ -1,4 +1,4 @@
-_VIDEO_ROOM_CLIP = """https://fastball-gateway.mlb.com/graphql?query=query clipQuery($ids: [String], $languagePreference: LanguagePreference, $idType: MediaPlaybackIdType, $userId: String!, $withUser: Boolean!) {
+_FILMROOM_CLIP = """https://fastball-gateway.mlb.com/graphql?query=query clipQuery($ids: [String], $languagePreference: LanguagePreference, $idType: MediaPlaybackIdType, $userId: String!, $withUser: Boolean!) {
   mediaPlayback(ids: $ids, languagePreference: $languagePreference, idType: $idType) {
     ...MediaPlaybackFields
     __typename
@@ -119,7 +119,7 @@ fragment MediaPlaybackFields on MediaPlayback {
 }
 &operationName=clipQuery&variables={"ids":"slug_id","languagePreference":"EN","idType":"SLUG","userId":"","withUser":false}"""
 
-_VIDEO_ROOM_SEARCH = """https://fastball-gateway.mlb.com/graphql?query=query Search($query: String!, $page: Int, $limit: Int, $feedPreference: FeedPreference, $languagePreference: LanguagePreference, $contentPreference: ContentPreference, $queryType: QueryType = STRUCTURED) {
+_FILMROOM_SEARCH = """https://fastball-gateway.mlb.com/graphql?query=query Search($query: String!, $page: Int, $limit: Int, $feedPreference: FeedPreference, $languagePreference: LanguagePreference, $contentPreference: ContentPreference, $queryType: QueryType = STRUCTURED) {
   search(query: $query, limit: $limit, page: $page, feedPreference: $feedPreference, languagePreference: $languagePreference, contentPreference: $contentPreference, queryType: $queryType) {
     plays {
       mediaPlayback {
@@ -231,4 +231,4 @@ _VIDEO_ROOM_SEARCH = """https://fastball-gateway.mlb.com/graphql?query=query Sea
 }
 &operationName=Search&variables={"queryType":null,"query":"","limit":125,"page":0,"languagePreference":"EN","contentPreference":"CMS_FIRST"}"""
 
-_VIDEO_ROOM_QUERIES = {"Clip": _VIDEO_ROOM_CLIP, "Search": _VIDEO_ROOM_SEARCH}
+_FILMROOM_QUERIES = {"Clip": _FILMROOM_CLIP, "Search": _FILMROOM_SEARCH}

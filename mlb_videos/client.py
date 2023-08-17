@@ -1,6 +1,6 @@
 import os
 import pandas as pd
-from typing import Union
+from typing import Union, Tuple
 
 import logging
 import logging.config
@@ -10,8 +10,8 @@ logger = logging.getLogger(__name__)
 from .constants import Teams
 from .statsapi import Game, Player
 from .statcast import Statcast
-from .filmroom import Clip
-from .video import Compilation
+from .filmroom import FilmRoom
+from .compilation import Compilation
 from .youtube import YouTube
 
 from .util import setup_project, purge_project_files
@@ -42,8 +42,8 @@ class MLBVideoClient:
         analysis: list = None,
         queries: list = None,
         steps: list = None,
-        search_clips: bool = False,
-        download_clips: bool = False,
+        search_filmroom: bool = False,
+        filmroom_params: dict = {},
         build_compilation: bool = False,
         compilation_params: dict = {},
         upload_youtube: bool = False,
@@ -61,13 +61,14 @@ class MLBVideoClient:
         self.analysis = analysis
         self.queries = queries
         self.steps = steps
-        self.search_clips = search_clips
-        self.download_clips = download_clips
+        self.search_filmroom = search_filmroom
+        self.filmroom_params = filmroom_params
         self.build_compilation = build_compilation
         self.compilation_params = compilation_params
         self.upload_youtube = upload_youtube
         self.youtube_params = youtube_params
         self.purge_files = purge_files
+        self.missing_videos = []
 
         # self._setup_project()
 
@@ -92,10 +93,8 @@ class MLBVideoClient:
         if steps:
             self._perform_steps()
 
-        if download_clips:
-            self.get_clips(download=True)
-        elif search_clips:
-            self.get_clips(download=False)
+        if self.search_filmroom:
+            self._get_filmroom_videos(params=self.filmroom_params)
 
         if build_compilation:
             self.create_compilation()
@@ -185,34 +184,23 @@ class MLBVideoClient:
             self.df = _ANALYSIS_DICT.get(md)(self.df)
             logging.info(f"Transformed DF: {md}")
 
-    def get_clips(self, download: bool = False, store_clips: bool = False):
-        self.search_clips = True
-        self.download_clips = True if download else False
+    def _perform_filmroom_search(self, pitch: pd.Series, params: dict) -> Tuple:
+        try:
+            clip = FilmRoom(pitch=pitch, local_path=self.project_path, **params)
+            return clip.get_file_info()
+        except Exception as e:
+            logging.warning(f"FilmRoom search failed: {e}\n\n")
+            return (None, None)
 
-        self.df["clip_file_name"] = None
-        self.df["clip_file_path"] = None
-        clips = []
-        for index, row in self.df.iterrows():
-            logging.info(f"Getting clips for pitchID {row['pitch_id']}")
-            try:
-                clip = Clip(pitch=row, download=download, download_path=self.local_path)
-                self.df.at[index, "clip_file_name"] = clip.get_clip_filename()
-                self.df.at[index, "clip_file_path"] = (
-                    clip.get_clip_filepath() if download else None
-                )
-                clips.append(clip)
-                logging.info(
-                    f"Completed {100*round(index/len(self.df),0)}% ({index}/{len(self.df)}) searches.."
-                )
-            except Exception as e:
-                logging.warning(f"Error getting clip for {row.pitch_id} -- {e}")
-                clip = None
-                pass
+    def _get_filmroom_videos(
+        self, params: dict = {"download": True, "feed": "Optimal"}
+    ):
+        self.search_filmroom = True
+        logging.info(f"Starting FilmRoom search for {len(self.df)} pitch(es)..")
 
-            if clip:
-                clips.append(clip)
-            if store_clips:
-                self.clips = clips
+        self.df[["video_file_name", "video_file_path"]] = self.df.apply(
+            lambda x: self._perform_filmroom_search(x), axis=1, result_type="expand"
+        )
 
     def sort_df(self, fields: Union[list, str], ascending: Union[list, bool]):
         if isinstance(fields, str) and isinstance(ascending, bool):
@@ -230,6 +218,7 @@ class MLBVideoClient:
 
     def query_df(self, query: str):
         self.df = self.df.query(query)
+        self.df = self.df.reset_index(drop=True)
         logging.info(f"Applied query to DF: {query}")
 
     def rank_df(
@@ -276,24 +265,24 @@ class MLBVideoClient:
                 self.rank_df(**step.get("params"))
         self.df = self.df.reset_index(drop=True)
 
-    def _validate_videos(self):
-        before_len = len(self.df)
-        null_pitches = [
-            (x.pitch_id, x.game_pk)
-            for _, x in self.df[self.df["clip_file_path"].notnull() == False].iterrows()
-        ]
-        self.df = self.df[self.df["clip_file_path"].notnull() == True]
-        new_len = len(self.df)
-        if new_len < before_len:
-            logging.info(
-                f"Dropped {new_len-before_len} pitches due to missing video: \n {null_pitches}"
-            )
+    # def _validate_videos(self):
+    #     before_len = len(self.df)
+    #     null_pitches = [
+    #         (x.pitch_id, x.game_pk)
+    #         for _, x in self.df[self.df["clip_file_path"].notnull() == False].iterrows()
+    #     ]
+    #     self.df = self.df[self.df["clip_file_path"].notnull() == True]
+    #     new_len = len(self.df)
+    #     if new_len < before_len:
+    #         logging.info(
+    #             f"Dropped {new_len-before_len} pitches due to missing video: \n {null_pitches}"
+    #         )
 
     def create_compilation(
         self, metric_caption: str = None, player_caption: str = None
     ):
         self.build_compilation = True
-        self._validate_videos()
+        # self._validate_videos()
         if metric_caption:
             self.compilation_params["metric_caption"] = metric_caption
         if player_caption:

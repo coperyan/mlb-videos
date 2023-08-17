@@ -10,13 +10,15 @@ logger = logging.getLogger(__name__)
 
 from .constants import _DT_FORMAT
 from .queries import (
-    _VIDEO_ROOM_QUERIES,
+    _FILMROOM_QUERIES,
 )
 
-_VIDEO_ROOM_CHUNK_SIZE = 1024
-_VIDEO_ROOM_QUERY_SUFFIX = "Order By Timestamp DESC"
-_VIDEO_ROOM_DEFAULT_FEED = "Best"
-_VIDEO_ROOM_DEFAULT_PARAMETERS = [
+_FILMROOM_CHUNK_SIZE = 1024
+_FILMROOM_QUERY_SUFFIX = "Order By Timestamp DESC"
+_FILMROOM_SUBFOLDER = "clips"
+_FILMROOM_DEFAULT_DOWNLOAD = True
+_FILMROOM_DEFAULT_FEED = "Best"
+_FILMROOM_DEFAULT_PARAMETERS = [
     "batter_id",
     "pitcher_id",
     "date",
@@ -25,11 +27,11 @@ _VIDEO_ROOM_DEFAULT_PARAMETERS = [
     "balls",
     "strikes",
 ]
-_VIDEO_ROOM_RESPONSE_PATH = {
+_FILMROOM_RESPONSE_PATH = {
     "Search": ["data", "search", "plays"],
     "Clip": ["data", "mediaPlayback"],
 }
-_VIDEO_ROOM_PARAMETERS = [
+_FILMROOM_PARAMETERS = [
     {"Name": "player_id", "Url": "PlayerId", "Ref": None, "Type": "int", "EqCt": 2},
     {
         "Name": "batter_id",
@@ -110,7 +112,7 @@ _VIDEO_ROOM_PARAMETERS = [
     },
 ]
 
-_VIDEO_ROOM_HEADERS = {
+_FILMROOM_HEADERS = {
     "Clip": {
         "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:92.0) Gecko/20100101 Firefox/92.0",
         "Accept": "*/*",
@@ -152,7 +154,7 @@ _VIDEO_ROOM_HEADERS = {
 }
 
 
-_VIDEO_ROOM_METADATA_PATH = {
+_FILMROOM_METADATA_PATH = {
     "id": ["id"],
     "slug": ["slug"],
     "title": ["title"],
@@ -179,7 +181,7 @@ _VIDEO_ROOM_METADATA_PATH = {
 }
 
 
-_VIDEO_ROOM_FEED_TYPES = {
+_FILMROOM_FEED_TYPES = {
     "Best": [
         "CMS_highBit",
         "CMS_mp4Avc",
@@ -211,40 +213,39 @@ _VIDEO_ROOM_FEED_TYPES = {
 }
 
 
-class Clip:
+class FilmRoom:
     def __init__(
         self,
         pitch: pd.Series,
-        params: list = _VIDEO_ROOM_DEFAULT_PARAMETERS,
-        feed: str = _VIDEO_ROOM_FEED_TYPES.get(_VIDEO_ROOM_DEFAULT_FEED, "Optimal"),
-        play_id: str = None,
-        download: bool = False,
-        download_path: str = None,
+        local_path: str = None,
+        query_params: list = _FILMROOM_DEFAULT_PARAMETERS,
+        feed: str = _FILMROOM_FEED_TYPES.get(_FILMROOM_DEFAULT_FEED, "Optimal"),
+        download: bool = _FILMROOM_DEFAULT_DOWNLOAD,
     ):
         self.pitch = pitch
-        self.params = params
-        self.play_id = play_id
+        self.query_params = query_params
         self.feed = feed
         self.download = download
-        self.download_path = f"{download_path}/clips"
+        self.download_path = f"{local_path}/{_FILMROOM_SUBFOLDER}"
+        self.play_id = None
         self.file_name = None
         self.file_path = None
         self.metadata = None
         self.feed_choice = None
-        if self.play_id is None:
-            self._build_search_query()
-            self.perform_search()
+        self._build_search_query()
+        self.perform_search()
         self.get_clip()
         if self.download:
             self.download_clip()
 
     def _build_search_query(self, exclude_params: list = []):
         query = ""
-        params = [x for x in self.params if x not in exclude_params]
-        for param in params:
-            param_ref = next(
-                filter(lambda x: x["Name"] == param, _VIDEO_ROOM_PARAMETERS)
-            )
+        if exclude_params:
+            query_params = [x for x in self.query_params if x not in exclude_params]
+        else:
+            query_params = self.query_params.copy()
+        for param in query_params:
+            param_ref = next(filter(lambda x: x["Name"] == param, _FILMROOM_PARAMETERS))
             param_val = self.pitch.get(param_ref["Ref"], {})
             if param == "date":
                 param_val = param_val.strftime(_DT_FORMAT)
@@ -258,8 +259,8 @@ class Clip:
             else:
                 query += f" AND {sparam_str}"
 
-        query = f"{query} {_VIDEO_ROOM_QUERY_SUFFIX}"
-        self.search_url = _VIDEO_ROOM_QUERIES.get("Search").replace(
+        query = f"{query} {_FILMROOM_QUERY_SUFFIX}"
+        self.search_url = _FILMROOM_QUERIES.get("Search").replace(
             '"query":""', f'"query":"{query}"'
         )
         logging.info(f"Built search query, excluded param(s): {exclude_params}")
@@ -272,8 +273,8 @@ class Clip:
         download: bool = False,
         download_path: str = None,
     ) -> Union[Dict, None]:
-        headers = _VIDEO_ROOM_HEADERS.get(request_type)
-        resp_path = _VIDEO_ROOM_RESPONSE_PATH.get(request_type)
+        headers = _FILMROOM_HEADERS.get(request_type)
+        resp_path = _FILMROOM_RESPONSE_PATH.get(request_type)
         resp = requests.get(url, headers=headers)
         if resp.status_code != 200:
             raise Exception(
@@ -288,14 +289,14 @@ class Clip:
             return data
         elif download:
             with open(download_path, "wb") as f:
-                for chunk in resp.iter_content(chunk_size=_VIDEO_ROOM_CHUNK_SIZE):
+                for chunk in resp.iter_content(chunk_size=_FILMROOM_CHUNK_SIZE):
                     if chunk:
                         f.write(chunk)
                 logging.info(f"Wrote clip to local store: {download_path}")
 
     def _clip_metadata(self, data: dict) -> dict:
         metadata = {}
-        for k, v in _VIDEO_ROOM_METADATA_PATH.items():
+        for k, v in _FILMROOM_METADATA_PATH.items():
             data_copy = data.copy()
             if k in ["feeds", "feed choice"]:
                 metadata.update({k: v})
@@ -352,7 +353,7 @@ class Clip:
 
     def get_clip(self):
         clip_json = self._make_request(
-            _VIDEO_ROOM_QUERIES.get("Clip").replace("slug_id", self.play_id),
+            _FILMROOM_QUERIES.get("Clip").replace("slug_id", self.play_id),
             request_type="Clip",
             return_json=True,
         )
@@ -396,6 +397,12 @@ class Clip:
                 logging.warning("Downloading failed..")
         else:
             pass
+
+    def get_file_info(self):
+        if self.download:
+            return (self.get_clip_filename(), self.get_clip_filepath())
+        else:
+            return (self.get_clip_filename(), None)
 
 
 # clips = []
