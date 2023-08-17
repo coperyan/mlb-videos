@@ -7,8 +7,8 @@ from moviepy.editor import (
     concatenate_videoclips,
 )
 
-from filmroom import Video
-from constants import _CAPTION_SETUP
+from .filmroom import Video
+from .constants import _CAPTION_SETUP
 
 _FPS_DEFAULT = 30
 _CAPTION_FONT = 75

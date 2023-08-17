@@ -34,3 +34,5 @@ projects/
 *.csv
 
 client_secret.json
+
+notes.txt
