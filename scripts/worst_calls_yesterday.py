@@ -1,25 +1,50 @@
 import os
+import time
+
+print("About to switch dirs")
+time.sleep(5)
+
+os.chdir(r"C:/Users/rcope/Documents/Dev/mlb_videos/mlb_videos")
+
+# import sys
+
+# sys.path.append(f"C:/Users/rcope/Documents/Dev/mlb_videos/mlb_videos")
+
+print("About to import logs dirs")
+time.sleep(5)
+
+
 import logging
 import logging.config
-from mlb_videos.util import setup_project, yesterday, twilio_message
 
-yesterday_title = yesterday("%B %d, %Y")
+print("About to import utils")
+time.sleep(5)
+
+from util import setup_project, yesterday, twilio_message
+
+# yesterday_title = yesterday("%B %d, %Y")
+yesterday_title = "August 15, 2023"
 
 _PROJECT_NAME = "worst_calls_yesterday"
-project_path = setup_project(_PROJECT_NAME)
+project_path = setup_project(_PROJECT_NAME, "2023-08-15")
 
-logging.config.fileConfig("logging.ini", defaults={"project_name": _PROJECT_NAME})
+logging.config.fileConfig("../logging.ini", defaults={"project_name": _PROJECT_NAME})
 logger = logging.getLogger(__name__)
 
-from mlb_videos import MLBVideoClient
+print("About to import mlb client")
+time.sleep(5)
+
+from client import MLBVideoClient
 
 
 def main():
     vid = MLBVideoClient(
         project_name=_PROJECT_NAME,
         project_path=project_path,
-        start_date=yesterday(),
-        end_date=yesterday(),
+        # start_date=yesterday(),
+        # end_date=yesterday(),
+        start_date="2023-08-15",
+        end_date="2023-08-15",
         enable_cache=False,
         game_info=False,
         player_info=False,
@@ -63,7 +88,7 @@ def main():
             "playlist": "Umpires - Worst Calls",
             # "thumbnail": "resources/acuna.jpg",
         },
-        purge_files=True,
+        purge_files=False,
     )
 
 

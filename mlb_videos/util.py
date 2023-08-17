@@ -4,7 +4,7 @@ from twilio.rest import Client
 
 from datetime import datetime, date, timedelta
 
-from .constants import _SEASON_DATES, _DT_FORMAT
+from constants import _SEASON_DATES, _DT_FORMAT
 
 _PROJECT_SUBFOLDERS = ["clips", "compilations", "data", "thumbnails", "logs"]
 _PURGE_SUBFOLDERS = ["clips", "compilations", "data"]
@@ -18,7 +18,7 @@ def today(fmt: str = _DT_FORMAT):
     return datetime.now().strftime(fmt)
 
 
-def setup_project(project_name: str):
+def setup_project(project_name: str, project_date: str = today()):
     pathlib.Path(f"{os.path.dirname(os.path.abspath(__file__))}/../projects").mkdir(
         parents=False, exist_ok=True
     )
@@ -35,7 +35,7 @@ def setup_project(project_name: str):
     return f"{os.path.dirname(os.path.abspath(__file__))}/../projects/{project_name}/{today()}"
 
 
-def purge_project_files(project_name: str):
+def purge_project_files(project_name: str, project_date: str = today()):
     project_path = f"{os.path.dirname(os.path.abspath(__file__))}/../projects/{project_name}/{today()}"
     for subfolder in _PURGE_SUBFOLDERS:
         iter_path = os.path.join(project_path, subfolder)

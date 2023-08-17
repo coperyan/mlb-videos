@@ -7,7 +7,7 @@ from moviepy.editor import (
     concatenate_videoclips,
 )
 
-from .constants import _CAPTION_SETUP
+from constants import _CAPTION_SETUP
 
 import logging
 import logging.config

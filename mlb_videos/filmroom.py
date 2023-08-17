@@ -8,8 +8,8 @@ import logging.config
 
 logger = logging.getLogger(__name__)
 
-from .constants import _DT_FORMAT
-from .queries import (
+from constants import _DT_FORMAT
+from queries import (
     _FILMROOM_QUERIES,
 )
 
