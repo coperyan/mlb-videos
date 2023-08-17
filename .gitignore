@@ -36,3 +36,10 @@ projects/
 client_secret.json
 
 notes.txt
+
+
+resources/*
+!resources/__init__.py
+
+credentials/*
+!credentials/__init__.py
