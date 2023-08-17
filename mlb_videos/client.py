@@ -185,7 +185,7 @@ class MLBVideoClient:
             self.df = _ANALYSIS_DICT.get(md)(self.df)
             logging.info(f"Transformed DF: {md}")
 
-    def get_clips(self, download: bool = False):
+    def get_clips(self, download: bool = False, store_clips: bool = False):
         self.search_clips = True
         self.download_clips = True if download else False
 
@@ -206,6 +206,13 @@ class MLBVideoClient:
                 )
             except Exception as e:
                 logging.warning(f"Error getting clip for {row.pitch_id} -- {e}")
+                clip = None
+                pass
+
+            if clip:
+                clips.append(clip)
+            if store_clips:
+                self.clips = clips
 
     def sort_df(self, fields: Union[list, str], ascending: Union[list, bool]):
         if isinstance(fields, str) and isinstance(ascending, bool):
@@ -269,10 +276,24 @@ class MLBVideoClient:
                 self.rank_df(**step.get("params"))
         self.df = self.df.reset_index(drop=True)
 
+    def _validate_videos(self):
+        before_len = len(self.df)
+        null_pitches = [
+            (x.pitch_id, x.game_pk)
+            for _, x in self.df[self.df["clip_file_path"].notnull() == False].iterrows()
+        ]
+        self.df = self.df[self.df["clip_file_path"].notnull() == True]
+        new_len = len(self.df)
+        if new_len < before_len:
+            logging.info(
+                f"Dropped {new_len-before_len} pitches due to missing video: \n {null_pitches}"
+            )
+
     def create_compilation(
         self, metric_caption: str = None, player_caption: str = None
     ):
         self.build_compilation = True
+        self._validate_videos()
         if metric_caption:
             self.compilation_params["metric_caption"] = metric_caption
         if player_caption:
