@@ -19,24 +19,50 @@ def today(fmt: str = _DT_FORMAT):
 
 
 def setup_project(project_name: str, project_date: str = today()):
-    pathlib.Path(f"{os.path.dirname(os.path.abspath(__file__))}/../projects").mkdir(
+    pathlib.Path(f"{os.path.dirname(os.path.abspath(__file__))}../projects").mkdir(
         parents=False, exist_ok=True
     )
     pathlib.Path(
-        f"{os.path.dirname(os.path.abspath(__file__))}/../projects/{project_name}"
+        f"{os.path.dirname(os.path.abspath(__file__))}../projects/{project_name}"
     ).mkdir(parents=False, exist_ok=True)
     pathlib.Path(
-        f"{os.path.dirname(os.path.abspath(__file__))}/../projects/{project_name}/{project_date}"
+        f"{os.path.dirname(os.path.abspath(__file__))}../projects/{project_name}/{project_date}"
     ).mkdir(parents=False, exist_ok=True)
     for subfolder in _PROJECT_SUBFOLDERS:
         pathlib.Path(
-            f"{os.path.dirname(os.path.abspath(__file__))}/../projects/{project_name}/{project_date}/{subfolder}"
+            f"{os.path.dirname(os.path.abspath(__file__))}../projects/{project_name}/{project_date}/{subfolder}"
         ).mkdir(parents=False, exist_ok=True)
-    return f"{os.path.dirname(os.path.abspath(__file__))}/../projects/{project_name}/{project_date}"
+    return f"{os.path.dirname(os.path.abspath(__file__))}../projects/{project_name}/{project_date}"
+
+
+def make_dirs_from_dict(d, current_dir="./"):
+    for key, val in d.items():
+        pathlib.Path(os.path.join(current_dir, key)).mkdir(parents=False, exist_ok=True)
+        if type(val) == dict:
+            make_dirs_from_dict(val, os.path.join(current_dir, key))
+
+
+def setup_project2(project_name: str, project_date: str = today()):
+    project_tree = {
+        "projects": {
+            "worst_calls_yesterday": {
+                f"{project_date}": {
+                    "clips": None,
+                    "compilations": None,
+                    "data": None,
+                    "logs": None,
+                    "thumbnails": None,
+                }
+            }
+        }
+    }
+    base_path = pathlib.Path(os.path.dirname(os.path.abspath(__file__))).parents[1]
+    make_dirs_from_dict(project_tree, base_path)
+    return base_path / "projects" / project_name / project_date
 
 
 def purge_project_files(project_name: str, project_date: str = today()):
-    project_path = f"{os.path.dirname(os.path.abspath(__file__))}/../projects/{project_name}/{project_date}"
+    project_path = f"{os.path.dirname(os.path.abspath(__file__))}/./projects/{project_name}/{project_date}"
     for subfolder in _PURGE_SUBFOLDERS:
         iter_path = os.path.join(project_path, subfolder)
         for file in os.listdir(iter_path):
