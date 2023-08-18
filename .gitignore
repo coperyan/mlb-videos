@@ -53,3 +53,4 @@ credentials/*
 resources/*.jpg
 resoures/*.png
 
+mlb_videos.egg-info*

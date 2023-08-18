@@ -5,15 +5,11 @@ from os import path
 
 from setuptools import find_packages, setup
 
-vrsn_file = path.join(path.abspath(path.dirname(__file__)), "mlb_videos", "version.py")
-with open(vrsn_file, encoding="utf-8") as f:
-    version = f.read().split(" = ")[-1].strip('"')
-
 
 setup(
     name="mlb_videos",
     project_name="mlb_videos",
-    version=version,
+    version="2.0.2",
     author="Ryan Cope",
     author_email="<ryancopedev@gmail.com",
     description="<Template Setup.py package>",

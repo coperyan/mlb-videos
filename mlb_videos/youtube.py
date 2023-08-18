@@ -10,7 +10,7 @@ from oauth2client.client import flow_from_clientsecrets
 from oauth2client.file import Storage
 from oauth2client.tools import argparser, run_flow
 
-from constants import _STANDARD_TAGS, _PLAYLISTS
+from .constants import _STANDARD_TAGS, _PLAYLISTS
 
 import logging
 import logging.config
@@ -41,7 +41,7 @@ _VALID_PRIVACY_STATUSES = ("public", "private", "unlisted")
 # _OAUTH_FILE = "credentials/oauth.json"
 
 _CLIENT_SECRET_PATH = os.environ.get("YOUTUBE_API_SECRET", "client_secret.json")
-_OAUTH_PATH = os.environ.get("YOUTUBE_API_OATH", "oauth.json")
+_OAUTH_PATH = os.environ.get("YOUTUBE_API_OAUTH", "oauth.json")
 
 _SCOPES = [
     "https://www.googleapis.com/auth/youtube.upload",
@@ -66,7 +66,7 @@ class YouTube:
 
     def _authenticate(self):
         self.flow = flow_from_clientsecrets(_CLIENT_SECRET_PATH, scope=_SCOPES)
-        storage = Storage(_OAUTH_FILE)
+        storage = Storage(_OAUTH_PATH)
         self.credentials = storage.get()
 
         if self.credentials is None or self.credentials.invalid:

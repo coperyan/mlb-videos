@@ -11,9 +11,9 @@ try:
     print(os.getcwd())
     time.sleep(5)
 
-    os.chdir(r"C:/Users/rcope/Documents/Dev/mlb_videos/mlb_videos")
+    # os.chdir(r"C:/Users/rcope/Documents/Dev/mlb_videos/mlb_videos")
 
-    sys.path.append(f"C:/Users/rcope/Documents/Dev/mlb_videos/mlb_videos")
+    # sys.path.append(f"C:/Users/rcope/Documents/Dev/mlb_videos/mlb_videos")
 
     print("About to import logs dirs")
     # time.sleep(5)
@@ -24,7 +24,7 @@ try:
     print("About to import utils")
     # time.sleep(5)
 
-    from utils import setup_project, yesterday, twilio_message
+    from mlb_videos.utils import setup_project, yesterday, twilio_message
 
     # yesterday_title = yesterday("%B %d, %Y")
     yesterday_title = "August 15, 2023"
@@ -33,14 +33,15 @@ try:
     project_path = setup_project(_PROJECT_NAME, "2023-08-15")
 
     logging.config.fileConfig(
-        "../logging.ini", defaults={"project_name": _PROJECT_NAME}
+        f"{os.path.dirname(os.path.abspath(__file__))}/logging.ini",
+        defaults={"project_name": _PROJECT_NAME},
     )
     logger = logging.getLogger(__name__)
 
     print("About to import mlb client")
     time.sleep(5)
 
-    from client import MLBVideoClient
+    from mlb_videos import MLBVideoClient
 
     def main():
         vid = MLBVideoClient(
@@ -99,10 +100,10 @@ try:
     if __name__ == "__main__":
         try:
             main()
-            twilio_message(f"New video successfully uploaded for {_PROJECT_NAME}..")
+            # twilio_message(f"New video successfully uploaded for {_PROJECT_NAME}..")
         except Exception as e:
             logging.info(f"Exception: {e}")
-            twilio_message(f"{_PROJECT_NAME} Pipeline Failed: {e}")
+            # twilio_message(f"{_PROJECT_NAME} Pipeline Failed: {e}")
 
 except Exception as e:
     print(e)
