@@ -8,8 +8,11 @@ import logging.config
 # Import utils to set project name & titles
 from mlb_videos.utils import setup_project2, yesterday, twilio_message
 
-yesterday_dt = yesterday()
-yesterday_title = yesterday("%B %d, %Y")
+# yesterday_dt = yesterday()
+# yesterday_title = yesterday("%B %d, %Y")
+
+yesterday_dt = "2023-08-20"
+yesterday_title = "August 20, 2023"
 
 _PROJECT_NAME = "worst_calls_yesterday"
 project_path = setup_project2(_PROJECT_NAME, yesterday_dt)
@@ -19,7 +22,7 @@ try:
     # setup logger
     logging.config.fileConfig(
         f"{os.path.dirname(os.path.abspath(__file__))}/../logging.ini",
-        defaults={"project_name": _PROJECT_NAME},
+        defaults={"project_name": _PROJECT_NAME, "project_date": yesterday_dt},
     )
     logger = logging.getLogger(__name__)
 
