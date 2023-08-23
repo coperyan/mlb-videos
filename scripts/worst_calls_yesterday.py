@@ -1,42 +1,29 @@
 import os
 import time
-
-
+from datetime import datetime, date
 import logging
 import logging.config
 
-# Import utils to set project name & titles
-from mlb_videos.utils import setup_project2, yesterday, twilio_message
+from mlb_videos.utils import setup_project2, x_days_ago
+from mlb_videos import MLBVideoClient
 
-# yesterday_dt = yesterday()
-# yesterday_title = yesterday("%B %d, %Y")
-
-yesterday_dt = "2023-08-20"
-yesterday_title = "August 20, 2023"
+date_var = x_days_ago(1)
+date_desc = x_days_ago(1, "%B %d, %Y")
 
 _PROJECT_NAME = "worst_calls_yesterday"
-project_path = setup_project2(_PROJECT_NAME, yesterday_dt)
+project_path = setup_project2(_PROJECT_NAME, date_var)
 
-
-try:
-    # setup logger
-    logging.config.fileConfig(
-        f"{os.path.dirname(os.path.abspath(__file__))}/../logging.ini",
-        defaults={"project_name": _PROJECT_NAME, "project_date": yesterday_dt},
-    )
-    logger = logging.getLogger(__name__)
-
-except Exception as e:
-    print(e)
-    time.sleep(20)
-
-from mlb_videos import MLBVideoClient
+logging.config.fileConfig(
+    "logging.ini",
+    defaults={"project_name": _PROJECT_NAME, "project_date": date_var},
+)
+logger = logging.getLogger(__name__)
 
 PARAMS = {
     "project_name": "worst_calls_yesterday",
     "project_path": project_path,
-    "start_date": yesterday(),
-    "end_date": yesterday(),
+    "start_date": date_var,
+    "end_date": date_var,
     "enable_cache": False,
     "game_info": False,
     "player_info": False,
@@ -49,7 +36,7 @@ PARAMS = {
             "params": {"query": "description in ('called_strike','ball')"},
         },
         {"type": "query", "params": {"query": "release_speed >= 65"}},
-        {"type": "query", "params": {"query": "total_miss >= 3"}},
+        {"type": "query", "params": {"query": "total_miss >= 2"}},
         {
             "type": "rank",
             "params": {
@@ -67,8 +54,8 @@ PARAMS = {
     "build_compilation": True,
     "youtube_upload": True,
     "youtube_params": {
-        "title": f"MLB Umpires | Worst Calls ({yesterday_title})",
-        "description": f"Here are the worst calls from yesterday's game(s) on {yesterday_title}.",
+        "title": f"MLB Umpires | Worst Calls ({date_desc})",
+        "description": f"Here are the worst calls from yesterday's game(s) on {date_desc}.",
         "tags": ["umpires", "angel hernandez", "bad baseball calls"],
         "playlist": "Umpires - Worst Calls",
         # "thumbnail": "resources/acuna.jpg",
@@ -76,15 +63,4 @@ PARAMS = {
     "purge_files": False,
 }
 
-
-def main():
-    vid_client = MLBVideoClient(**PARAMS)
-
-
-if __name__ == "__main__":
-    try:
-        main()
-    except Exception as e:
-        logging.info(f"Pipeline failed:{e}")
-        time.sleep(25)
-        raise Exception(e)
+MLBVideoClient(**PARAMS)

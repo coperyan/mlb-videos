@@ -18,6 +18,10 @@ def today(fmt: str = _DT_FORMAT):
     return datetime.now().strftime(fmt)
 
 
+def x_days_ago(num_days: int = 0, fmt: str = _DT_FORMAT):
+    return (datetime.now() - timedelta(days=num_days)).strftime(fmt)
+
+
 def setup_project(project_name: str, project_date: str = today()):
     pathlib.Path(f"{os.path.dirname(os.path.abspath(__file__))}../projects").mkdir(
         parents=False, exist_ok=True
@@ -56,7 +60,7 @@ def setup_project2(project_name: str, project_date: str = today()):
             }
         }
     }
-    base_path = pathlib.Path(os.path.dirname(os.path.abspath(__file__))).parents[1]
+    base_path = pathlib.Path(os.path.dirname(os.path.abspath(__file__))).parent
     make_dirs_from_dict(project_tree, base_path)
     return base_path / "projects" / project_name / project_date
 
