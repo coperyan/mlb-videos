@@ -30,3 +30,27 @@ mlb_videos/logs
 
 #Project Files
 projects/
+
+*.csv
+
+client_secret.json
+
+notes.txt
+
+
+resources/*
+!resources/__init__.py
+
+credentials/*
+!credentials/__init__.py
+
+
+
+*.oauth.json
+*.client_secret.json
+
+
+resources/*.jpg
+resoures/*.png
+
+mlb_videos.egg-info*

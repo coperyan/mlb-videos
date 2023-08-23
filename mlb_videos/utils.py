@@ -56,7 +56,7 @@ def setup_project2(project_name: str, project_date: str = today()):
             }
         }
     }
-    base_path = pathlib.Path(os.path.dirname(os.path.abspath(__file__))).parent
+    base_path = pathlib.Path(os.path.dirname(os.path.abspath(__file__))).parents[1]
     make_dirs_from_dict(project_tree, base_path)
     return base_path / "projects" / project_name / project_date
 
