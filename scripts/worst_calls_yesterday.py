@@ -58,6 +58,7 @@ PARAMS = {
         "description": f"Here are the worst calls from yesterday's game(s) on {date_desc}.",
         "tags": ["umpires", "angel hernandez", "bad baseball calls"],
         "playlist": "Umpires - Worst Calls",
+        "privacy": "public"
         # "thumbnail": "resources/acuna.jpg",
     },
     "purge_files": False,
