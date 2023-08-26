@@ -165,8 +165,3 @@ class Statcast:
 
     def get_df(self) -> pd.DataFrame:
         return self.df
-
-
-# test = Statcast(
-#     start_date="2023-07-01", end_date="2023-07-01", transform=["umpire_calls"]
-# )
