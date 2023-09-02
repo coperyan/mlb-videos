@@ -38,13 +38,13 @@ PARAMS = {
             "type": "query",
             "params": {"query": "events == 'home_run'"},
         },
-        {"type": "query", "params": {"query": "hit_distance > 0"}},
+        {"type": "query", "params": {"query": "hit_distance_sc > 0"}},
         {
             "type": "rank",
             "params": {
                 "name": "homer_distance_rank",
                 "group_by": None,
-                "fields": ["hit_distance"],
+                "fields": ["hit_distance_sc"],
                 "ascending": [False],
                 "keep_sort": True,
             },
@@ -54,7 +54,7 @@ PARAMS = {
     "search_filmroom": True,
     "filmroom_params": {"feed": "Best", "download": True},
     "build_compilation": True,
-    "compilation_params": {"metric_caption": "hit_distance"},
+    "compilation_params": {"metric_caption": "hit_distance_sc"},
     "youtube_upload": True,
     "youtube_params": {
         "title": f"MLB | Longest Home Runs ({month_desc})",
