@@ -28,6 +28,7 @@ class Compilation:
         local_path: str = None,
         metric_caption: str = None,
         player_caption: str = None,
+        **kwargs,
     ):
         self.title = title
         self.df = df

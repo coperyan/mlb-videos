@@ -13,7 +13,7 @@ start_date = month_dict.get("start_date")
 end_date = month_dict.get("end_date")
 date_var = f"{month_dict.get('year')}{str(month_dict.get('month_number')).zfill(2)}"
 
-_PROJECT_NAME = "hardest_hit_balls_last_month"
+_PROJECT_NAME = "longest_home_runs_last_month"
 project_path = setup_project2(_PROJECT_NAME, date_var)
 
 logging.config.fileConfig(
@@ -23,7 +23,7 @@ logging.config.fileConfig(
 logger = logging.getLogger(__name__)
 
 PARAMS = {
-    "project_name": "hardest_hit_balls_last_month",
+    "project_name": "longest_home_runs_last_month",
     "project_path": project_path,
     "start_date": start_date,
     "end_date": end_date,
@@ -36,35 +36,31 @@ PARAMS = {
     "steps": [
         {
             "type": "query",
-            "params": {"query": "description == 'hit_into_play'"},
+            "params": {"query": "events == 'home_run'"},
         },
-        {
-            "type": "query",
-            "params": {"query": "events in ('single','double','triple','home_run')"},
-        },
-        {"type": "query", "params": {"query": "launch_speed > 0"}},
+        {"type": "query", "params": {"query": "hit_distance > 0"}},
         {
             "type": "rank",
             "params": {
-                "name": "exit_velocity_rank",
+                "name": "homer_distance_rank",
                 "group_by": None,
-                "fields": ["launch_speed"],
+                "fields": ["hit_distance"],
                 "ascending": [False],
                 "keep_sort": True,
             },
         },
-        {"type": "query", "params": {"query": "exit_velocity_rank <= 25"}},
+        {"type": "query", "params": {"query": "homer_distance_rank <= 25"}},
     ],
     "search_filmroom": True,
     "filmroom_params": {"feed": "Best", "download": True},
     "build_compilation": True,
-    "compilation_params": {"metric_caption": "launch_speed"},
+    "compilation_params": {"metric_caption": "hit_distance"},
     "youtube_upload": True,
     "youtube_params": {
-        "title": f"MLB | Hardest Hits ({month_desc})",
-        "description": f"Here are the top 25 balls hit for hits over the past month in {month_desc}.",
+        "title": f"MLB | Longest Home Runs ({month_desc})",
+        "description": f"Here are the top 25 longest homers over the past month in {month_desc}.",
         "tags": ["ohtani", "angel hernandez", "baseball smoked"],
-        "playlist": "Hardest Hits",
+        "playlist": "Longest Home Runs",
         "privacy": "public"
         # "thumbnail": "resources/acuna.jpg",
     },

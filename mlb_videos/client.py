@@ -280,15 +280,9 @@ class MLBVideoClient:
     #             f"Dropped {new_len-before_len} pitches due to missing video: \n {null_pitches}"
     #         )
 
-    def create_compilation(
-        self, metric_caption: str = None, player_caption: str = None
-    ):
+    def create_compilation(self):
         self.build_compilation = True
         # self._validate_videos()
-        if metric_caption:
-            self.compilation_params["metric_caption"] = metric_caption
-        if player_caption:
-            self.compilation_params["player_caption"] = player_caption
         comp = Compilation(
             title=self.project_name,
             df=self.df,

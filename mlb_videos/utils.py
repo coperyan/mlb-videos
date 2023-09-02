@@ -34,7 +34,7 @@ def x_months_ago(x: int = 0, fmt: str = _DT_FORMAT):
         "start_date": first_day_x_months.strftime(fmt),
         "end_date": last_day_x_months.strftime(fmt),
         "month_name": last_day_x_months.strftime("%B"),
-        "month_number": int(last_day_x_months.strftime("%-m")),
+        "month_number": int(last_day_x_months.strftime("%m")),
         "year": int(last_day_x_months.strftime("%Y")),
     }
 
@@ -79,7 +79,7 @@ def make_dirs_from_dict(d, current_dir="./"):
 def setup_project2(project_name: str, project_date: str = today()):
     project_tree = {
         "projects": {
-            "worst_calls_yesterday": {
+            f"{project_name}": {
                 f"{project_date}": {
                     "clips": None,
                     "compilations": None,
