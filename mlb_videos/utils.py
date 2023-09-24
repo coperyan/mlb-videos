@@ -12,18 +12,70 @@ _PURGE_SUBFOLDERS = ["clips", "compilations", "data"]
 
 
 def yesterday(fmt: str = _DT_FORMAT):
+    """Returns yesterday's date
+
+    Parameters
+    ----------
+        fmt (str, optional): str, default _DT_FORMAT
+            datetime format (ex. `%Y-%m-%d`)
+
+    Returns
+    -------
+        str
+            Yesterday formatted as a str
+    """
     return (datetime.now() - timedelta(days=1)).strftime(fmt)
 
 
 def today(fmt: str = _DT_FORMAT):
+    """Returns today's date
+
+    Parameters
+    ----------
+        fmt (str, optional): str, default _DT_FORMAT
+            datetime format (ex. `%Y-%m-%d`)
+
+    Returns
+    -------
+        str
+            Today formatted as a str
+    """
     return datetime.now().strftime(fmt)
 
 
 def x_days_ago(num_days: int = 0, fmt: str = _DT_FORMAT):
+    """Returns the date x days ago
+
+    Parameters
+    ----------
+        num_days (int, optional): int, default 0
+            number of days to subtract from today
+        fmt (str, optional): str, default _DT_FORMAT
+            datetime format (ex. `%Y-%m-%d`)
+
+    Returns
+    -------
+        str
+            X days ago formatted as a str
+    """
     return (datetime.now() - timedelta(days=num_days)).strftime(fmt)
 
 
 def x_months_ago(x: int = 0, fmt: str = _DT_FORMAT):
+    """Returns the month x months ago
+
+    Parameters
+    ----------
+        x (int, optional): int, default 0
+            number of months to subtract from this month
+        fmt (str, optional): str, default _DT_FORMAT
+            datetime format (ex. `%Y-%m-%d`)
+
+    Returns
+    -------
+        str
+            X months ago formatted as a str
+    """
     today = date.today()
     today_x_months_ago = today - relativedelta(months=x)
     first_day_x_months = today_x_months_ago.replace(day=1)
@@ -40,6 +92,20 @@ def x_months_ago(x: int = 0, fmt: str = _DT_FORMAT):
 
 
 def x_weeks_ago(x: int = 0, fmt: str = _DT_FORMAT):
+    """Returns the month x weeks ago
+
+    Parameters
+    ----------
+        x (int, optional): int, default 0
+            number of weeks to subtract from this week
+        fmt (str, optional): str, default _DT_FORMAT
+            datetime format (ex. `%Y-%m-%d`)
+
+    Returns
+    -------
+        str
+            X weeks ago formatted as a str
+    """
     today = date.today()
     start_date = today + timedelta(-today.weekday() - 1, weeks=-x)
     end_date = start_date + timedelta(days=6)
@@ -104,6 +170,18 @@ def purge_project_files(project_name: str, project_date: str = today()):
 
 
 def get_date_range(start_dt: str, end_dt: str) -> list:
+    """Get Date Range
+
+    Parameters
+    ----------
+        start_dt : str
+        end_dt : str
+
+    Returns
+    -------
+        list
+            list of dates (str)
+    """
     start_date = datetime.strptime(start_dt, _DT_FORMAT).date()
     end_date = datetime.strptime(end_dt, _DT_FORMAT).date()
     max_date = datetime.strptime(yesterday(), _DT_FORMAT).date()
