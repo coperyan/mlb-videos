@@ -14,7 +14,8 @@ from .filmroom import FilmRoom
 from .compilation import Compilation
 from .youtube import YouTube
 
-from .utils import setup_project, purge_project_files
+# from .utils import setup_project, purge_project_files
+from .utils import _PURGE_SUBFOLDERS
 
 from .analysis.umpire_calls import get_ump_calls
 from .analysis.delta_win_exp import get_pitcher_batter_delta_win_exp
@@ -102,13 +103,21 @@ class MLBVideoClient:
             self.upload_youtube()
 
         if purge_files:
-            self.purge_project_data()
+            self.purge_project_media()
 
-    def _setup_project(self):
-        setup_project(self.project_name)
+    # def _setup_project(self):
+    #     setup_project(self.project_name)
 
-    def purge_project_data(self):
-        purge_project_files(self.project_name)
+    # def purge_project_data(self):
+    #     purge_project_files(self.project_name)
+
+    def purge_project_media(self):
+        for subfolder in _PURGE_SUBFOLDERS:
+            del_dir = os.path.join(self.local_path, subfolder)
+            files = [os.path.join(del_dir, f) for f in os.listdir(del_dir)]
+            for f in files:
+                os.remove(f)
+        logging.info(f"Purged media from project folder..")
 
     def update_df(self, new_df: pd.DataFrame):
         self.df = new_df
