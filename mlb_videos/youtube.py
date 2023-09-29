@@ -54,6 +54,15 @@ _YOUTUBE_API_VERSION = "v3"
 
 class YouTube:
     def __init__(self, file_path: str, params: dict = None):
+        """Initialize YouTube class
+
+        Parameters
+        ----------
+            file_path : str
+                Local file path to the video file to be uploaded
+            params (dict, optional): dict, default None
+                Parameters for the upload, contains stuff like description, playlist, thumbnail path, etc.
+        """
         self.file_path = file_path
         self.params = params
         self.thumbnail = self.params.get("thumbnail", None)

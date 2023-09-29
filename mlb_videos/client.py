@@ -14,7 +14,6 @@ from .filmroom import FilmRoom
 from .compilation import Compilation
 from .youtube import YouTube
 
-# from .utils import setup_project, purge_project_files
 from .utils import _PURGE_SUBFOLDERS
 
 from .analysis.umpire_calls import get_ump_calls
@@ -51,6 +50,50 @@ class MLBVideoClient:
         youtube_params: dict = {},
         purge_files: bool = False,
     ):
+        """MLB Video Client - handles end-to-end
+
+        Parameters
+        ----------
+            project_name : str
+                used for storing project files in specific project dir
+            project_path : str
+                local path to store project files
+            start_date : str
+                start date for statcast query
+            end_date (str, optional): str, default None
+                end date for statcast query (if None, statcast sets to today)
+            enable_cache (bool, optional): bool, default False
+                Cache statcast data locally for re-use
+            game_info (bool, optional): bool, default False
+                Expand data model to StatsAPI and gather game info_
+            player_info (bool, optional): bool, default False
+                Expand data model to MLB.com and gather player info
+            team_info (bool, optional): bool, default False
+                Expand team info to include abbreviations, hashtags, etc.
+            analysis (list, optional): list, default None
+                List of analysis functions to apply, transforming dataframe
+                    ex. `["umpire_calls","pitch_movement"]`
+            queries (list, optional): list, default None
+                List of queries to apply to dataframe
+                    Each row represents string passed to df.query method
+            steps (list, optional): list, default None
+                Each element `step` in steps represents a query or rank method applied
+            search_filmroom (bool, optional): bool, default False
+                Perform search on MLB Film Room site, finding video for each record in dataframe
+            filmroom_params (dict, optional): dict, default {}
+                Params to pass to MLB Film Room class (feed, download(bool), etc.)
+            build_compilation (bool, optional): bool, default False
+                Gather clips & consolidate in comp file
+            compilation_params (dict, optional): dict, default {}
+                **kwargs for compilation class
+            youtube_upload (bool, optional): bool, default False
+                Upload compilation to Youtube
+            youtube_params (dict, optional): dict, default {}
+                Parameters for youtube API
+                    ex. video title, description, tags, playlist to add to, privacy, thumbnail, etc.
+            purge_files (bool, optional): bool, default False
+                Purge local store of video clips, compilations, etc.
+        """
         self.project_name = project_name
         self.local_path = project_path
         self.start_date = start_date
@@ -70,8 +113,6 @@ class MLBVideoClient:
         self.youtube_params = youtube_params
         self.purge_files = purge_files
         self.missing_videos = []
-
-        # self._setup_project()
 
         self.statcast_df = Statcast(
             start_date=start_date, end_date=end_date, enable_cache=enable_cache
@@ -105,13 +146,8 @@ class MLBVideoClient:
         if purge_files:
             self.purge_project_media()
 
-    # def _setup_project(self):
-    #     setup_project(self.project_name)
-
-    # def purge_project_data(self):
-    #     purge_project_files(self.project_name)
-
     def purge_project_media(self):
+        """Deletes local store of media files (video, data, etc.)"""
         for subfolder in _PURGE_SUBFOLDERS:
             del_dir = os.path.join(self.local_path, subfolder)
             files = [os.path.join(del_dir, f) for f in os.listdir(del_dir)]
@@ -120,9 +156,19 @@ class MLBVideoClient:
         logging.info(f"Purged media from project folder..")
 
     def update_df(self, new_df: pd.DataFrame):
+        """Sets DF property within client
+
+        Parameters
+        ----------
+            new_df : pd.DataFrame
+        """
         self.df = new_df
 
     def add_game_info(self):
+        """Add game info from the MLB StatsAPI to statcast dataframe
+
+        Contains attributes for ballpark, umpire, etc.
+        """
         game_list = list(set(self.statcast_df["game_pk"].values.tolist()))
         logging.info(f"Getting game info for {len(game_list)} game(s)..")
         games = Game(game_list)
@@ -134,6 +180,10 @@ class MLBVideoClient:
         logging.info(f"Added game info.")
 
     def add_player_info(self):
+        """Add player info from MLB website to statcast dataframe
+
+        Contains personal info, social media links, etc.
+        """
         player_list = list(
             set(self.df["batter"].values.tolist() + self.df["pitcher"].values.tolist())
         )
@@ -164,6 +214,10 @@ class MLBVideoClient:
         logging.info(f"Added player info.")
 
     def add_team_info(self):
+        """Add team info from static file to statcast dataframe
+
+        Contains team name abbreviations, hashtags, etc.
+        """
         team_df = pd.json_normalize([v for _, v in Teams.items()])
         self.df = self.df.merge(
             team_df.rename(
@@ -187,6 +241,13 @@ class MLBVideoClient:
         )
 
     def transform_statcast(self, mod: Union[list, str]):
+        """Run each module `(analysis/*)` referenced in class.analysis
+
+        Parameters
+        ----------
+            mod : Union[list, str]
+                list of str or str with module names
+        """
         if isinstance(mod, str):
             mod = [mod]
         for md in mod:
@@ -194,6 +255,20 @@ class MLBVideoClient:
             logging.info(f"Transformed DF: {md}")
 
     def _perform_filmroom_search(self, pitch: pd.Series, params: dict) -> Tuple:
+        """Performs a filmrooom search for given pitch
+
+        Parameters
+        ----------
+            pitch : pd.Series
+                row of data from self.df
+            params : dict
+                self.filmroom_params
+
+        Returns
+        -------
+            Tuple
+                Information about clip if found
+        """
         try:
             clip = FilmRoom(pitch=pitch, local_path=self.local_path, **params)
             return clip.get_file_info()
@@ -204,6 +279,13 @@ class MLBVideoClient:
     def _get_filmroom_videos(
         self, params: dict = {"download": True, "feed": "Optimal"}
     ):
+        """Iterates over members of self.df & performs filmroom search for all
+
+        Parameters
+        ----------
+            params (dict, optional): dict, default {"download": True, "feed": "Optimal"}
+                self.filmroom params
+        """
         self.search_filmroom = True
         logging.info(f"Starting FilmRoom search for {len(self.df)} pitch(es)..")
 
@@ -214,6 +296,20 @@ class MLBVideoClient:
         )
 
     def sort_df(self, fields: Union[list, str], ascending: Union[list, bool]):
+        """Sort dataframe based on multiple fields
+
+        Parameters
+        ----------
+            fields : Union[list, str]
+                list of cols to sort by
+            ascending : Union[list, bool]
+                list of boolean
+
+        Raises
+        ------
+            Exception
+                If count of fields != ascending, raise exception
+        """
         if isinstance(fields, str) and isinstance(ascending, bool):
             fields = [fields]
             ascending = [ascending]
@@ -228,6 +324,13 @@ class MLBVideoClient:
         logging.info(f"Sorted df: {fields}")
 
     def query_df(self, query: str):
+        """Applies df.query method & resets index
+
+        Parameters
+        ----------
+            query : str
+                Query string to pass to query function
+        """
         self.df = self.df.query(query)
         self.df = self.df.reset_index(drop=True)
         logging.info(f"Applied query to DF: {query}")
@@ -240,6 +343,26 @@ class MLBVideoClient:
         ascending: Union[list, bool],
         keep_sort: bool = False,
     ):
+        """Rank members of dataframe, multi-column, add field repr
+
+        Parameters
+        ----------
+            name : str
+                Col name to add for rank value
+            group_by : Union[list, str]
+                List of columns to groupby
+            fields : Union[list, str]
+                List of columns to rank by
+            ascending : Union[list, bool]
+                List of boolean
+            keep_sort (bool, optional): bool, default False
+                Keep values in same order as before
+
+        Raises
+        ------
+            Exception
+                If count of fields != ascending, raise exception
+        """
         if isinstance(group_by, str):
             group_by = [group_by]
         if isinstance(fields, str) and isinstance(ascending, bool):
@@ -262,13 +385,21 @@ class MLBVideoClient:
         logging.info(f"Added rank field: {name} to DF")
 
     def get_df(self) -> pd.DataFrame:
+        """Get DataFrame
+
+        Returns
+        -------
+            pd.DataFrame
+        """
         return self.df
 
     def _perform_queries(self):
+        """Run all pre-defined queries"""
         for query in self.queries:
             self.query_df(query)
 
     def _perform_steps(self):
+        """Run all pre-defined steps"""
         for step in self.steps:
             if step.get("type") == "query":
                 self.query_df(**step.get("params"))
@@ -276,20 +407,8 @@ class MLBVideoClient:
                 self.rank_df(**step.get("params"))
         self.df = self.df.reset_index(drop=True)
 
-    # def _validate_videos(self):
-    #     before_len = len(self.df)
-    #     null_pitches = [
-    #         (x.pitch_id, x.game_pk)
-    #         for _, x in self.df[self.df["clip_file_path"].notnull() == False].iterrows()
-    #     ]
-    #     self.df = self.df[self.df["clip_file_path"].notnull() == True]
-    #     new_len = len(self.df)
-    #     if new_len < before_len:
-    #         logging.info(
-    #             f"Dropped {new_len-before_len} pitches due to missing video: \n {null_pitches}"
-    #         )
-
     def create_compilation(self):
+        """Init Compilation class, generate file"""
         self.build_compilation = True
         # self._validate_videos()
         comp = Compilation(
@@ -301,6 +420,20 @@ class MLBVideoClient:
         self.comp_file = comp.get_comp_path()
 
     def upload_youtube(self, youtube_params: dict = None):
+        """Upload compilation to YouTube
+
+        Parameters
+        ----------
+            youtube_params (dict, optional): dict, default None
+                dictionary of youtube parameters
+
+        Raises
+        ------
+            Exception
+                _description_
+            Exception
+                _description_
+        """
         if not self.comp_file:
             raise Exception("No compilation generated..")
 

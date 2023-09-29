@@ -3,10 +3,10 @@
 from codecs import open
 from os import path
 
-from setuptools import find_packages, setup
+import setuptools
 
 
-setup(
+setuptools.setup(
     name="mlb_videos",
     project_name="mlb_videos",
     version="2.0.2",
