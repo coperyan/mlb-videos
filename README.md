@@ -1,4 +1,4 @@
-# mlb_videos
+# mlb-videos
 
 Baseball data, analysis, but automated; with video proof
 
