@@ -52,6 +52,7 @@ PARAMS = {
     "search_filmroom": True,
     "filmroom_params": {"feed": "Best", "download": True},
     "build_compilation": True,
+    "compilation_params": {"use_intro": True},
     "youtube_upload": True,
     "youtube_params": {
         "title": f"MLB Umpires | Worst Calls ({date_desc})",

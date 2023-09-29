@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import pathlib
 from moviepy.editor import (
     VideoFileClip,
     TextClip,
@@ -18,6 +19,10 @@ _FPS_DEFAULT = 30
 _CAPTION_FONT = 75
 _CLIP_LIMIT = 100
 _COMP_SUBFOLDER = "compilations"
+_INTRO_PATH = os.path.join(
+    pathlib.Path(f"{os.path.dirname(os.path.abspath(__file__))}").parent,
+    "resources/intro.mp4",
+)
 
 
 class Compilation:
@@ -26,6 +31,7 @@ class Compilation:
         title: str,
         df: pd.DataFrame,
         local_path: str = None,
+        use_intro: bool = False,
         metric_caption: str = None,
         player_caption: str = None,
         **kwargs,
@@ -33,6 +39,7 @@ class Compilation:
         self.title = title
         self.df = df
         self.local_path = local_path
+        self.use_intro = use_intro
         self.metric_caption = metric_caption
         self.player_caption = player_caption
 
@@ -47,6 +54,9 @@ class Compilation:
         self.clip_objs = []
 
         self._check_clip_limit()
+
+        if self.use_intro:
+            self._add_intro()
         self._create_clip_objs()
         self._build_compilation()
 
@@ -114,6 +124,9 @@ class Compilation:
                     f"Clip creation failed for: {row['pitch_id']}, skipping..\n{e}\n"
                 )
                 pass
+
+    def _add_intro(self):
+        self.clip_objs.append(VideoFileClip(_INTRO_PATH, fps_source="fps"))
 
     def _build_compilation(self):
         comp_obj = concatenate_videoclips(self.clip_objs, method="compose")
