@@ -53,6 +53,11 @@ _YOUTUBE_API_VERSION = "v3"
 
 
 class YouTube:
+    """YouTube Client
+
+    Utilizes the YouTube API to upload a local file to a YouTube video.
+    """
+
     def __init__(self, file_path: str, params: dict = None):
         """Initialize YouTube class
 

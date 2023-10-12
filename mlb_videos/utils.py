@@ -136,6 +136,15 @@ def setup_project(project_name: str, project_date: str = today()):
 
 
 def make_dirs_from_dict(d, current_dir="./"):
+    """Recursive - Builds Directory from Nested Dict
+
+    Parameters
+    ----------
+        d : _type_
+            Nested Dictionary representing directories
+        current_dir (str, optional): str, default "./"
+            Directory to build folders in
+    """
     for key, val in d.items():
         pathlib.Path(os.path.join(current_dir, key)).mkdir(parents=False, exist_ok=True)
         if type(val) == dict:
@@ -143,6 +152,20 @@ def make_dirs_from_dict(d, current_dir="./"):
 
 
 def setup_project2(project_name: str, project_date: str = today()):
+    """Setup Project Directories
+
+    Parameters
+    ----------
+        project_name : str
+            project name (top level folder name)
+        project_date (str, optional): str, default today()
+            date of project analysis -- could be month, week, or actual date
+
+    Returns
+    -------
+        _type_
+            Path to local projects folder directory
+    """
     project_tree = {
         "projects": {
             f"{project_name}": {
@@ -207,6 +230,15 @@ def get_date_range(start_dt: str, end_dt: str) -> list:
 
 
 def twilio_message(to: str = os.environ.get("TWILIO_TO_PHONE"), message: str = None):
+    """Sends a message using the Twilio API
+
+    Parameters
+    ----------
+        to (str, optional): str, default os.environ.get("TWILIO_TO_PHONE")
+            phone number to text
+        message (str, optional): str, default None
+            message to text
+    """
     client = Client(os.environ.get("TWILIO_SID"), os.environ.get("TWILIO_TOKEN"))
     message = client.messages.create(
         to=to, from_=os.environ.get("TWILIO_PHONE"), body=message
