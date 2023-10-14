@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import subprocess
 import pathlib
 from moviepy.editor import (
     VideoFileClip,
@@ -34,6 +35,7 @@ class Compilation:
         use_intro: bool = False,
         metric_caption: str = None,
         player_caption: str = None,
+        resize_videos: tuple = None,
         **kwargs,
     ):
         self.title = title
@@ -42,6 +44,7 @@ class Compilation:
         self.use_intro = use_intro
         self.metric_caption = metric_caption
         self.player_caption = player_caption
+        self.resize_videos = resize_videos
 
         self.clip_files = [
             os.path.join(self.local_path, f)
@@ -57,6 +60,7 @@ class Compilation:
 
         if self.use_intro:
             self._add_intro()
+
         self._create_clip_objs()
         self._build_compilation()
 
@@ -66,6 +70,11 @@ class Compilation:
     def _check_clip_limit(self):
         if len(self.df) > _CLIP_LIMIT:
             raise Exception("Exceeded maximum numbers of clip per comp.")
+
+    def _resize_video(self, path: str):
+        new_path = path.replace(".mp4", "_rsz.mp4")
+        cmd = f"ffmpeg -i {path} -vf scale=1920:1080 -preset slow -crf 18 {new_path}"
+        subprocess.call(cmd, shell=True)
 
     def _generate_caption(self, pitch: pd.Series) -> str:
         if self.metric_caption is not None:
@@ -105,7 +114,17 @@ class Compilation:
 
     def _create_clip_obj(self, pitch: pd.Series):
         if os.path.exists(pitch["video_file_path"]):
-            clip_obj = VideoFileClip(pitch["video_file_path"], fps_source="fps")
+            if self.resize_videos:
+                self._resize_video(pitch["video_file_path"])
+
+            clip_obj = VideoFileClip(
+                (
+                    pitch["video_file_path"]
+                    if not self.resize_videos
+                    else f"{pitch['video_file_path'].replace('.mp4','_rsz.mp4')}"
+                ),
+                fps_source="fps",
+            )
 
             if any([self.metric_caption, self.player_caption]):
                 caption_obj = self._build_caption_clip(self._generate_caption(pitch))
