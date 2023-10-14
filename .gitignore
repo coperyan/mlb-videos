@@ -56,3 +56,8 @@ resoures/*.png
 mlb_videos.egg-info*
 
 .archive/
+
+*oauth.json
+
+
+.dev/
