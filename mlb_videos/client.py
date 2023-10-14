@@ -405,6 +405,8 @@ class MLBVideoClient:
                 self.query_df(**step.get("params"))
             elif step.get("type") == "rank":
                 self.rank_df(**step.get("params"))
+            elif step.get("type") == "sort":
+                self.sort_df(**step.get("params"))
         self.df = self.df.reset_index(drop=True)
 
     def create_compilation(self):
