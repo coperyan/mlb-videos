@@ -50,18 +50,26 @@ PARAMS = {
             },
         },
         {"type": "query", "params": {"query": "homer_distance_rank <= 25"}},
+        {
+            "type": "sort",
+            "params": {"fields": ["homer_distance_rank"], "ascending": [False]},
+        },
     ],
     "search_filmroom": True,
     "filmroom_params": {"feed": "Best", "download": True},
     "build_compilation": True,
-    "compilation_params": {"metric_caption": "hit_distance_sc"},
+    "compilation_params": {
+        "metric_caption": "hit_distance_sc",
+        "use_intro": True,
+        "resize_videos": (1920, 1080),
+    },
     "youtube_upload": True,
     "youtube_params": {
         "title": f"MLB | Longest Home Runs ({month_desc})",
-        "description": f"Here are the top 25 longest homers over the past month in {month_desc}.",
+        "description": f"Here are the top 25 longest homers over the past month -- {month_desc}.",
         "tags": ["ohtani", "angel hernandez", "baseball smoked"],
         "playlist": "Longest Home Runs",
-        "privacy": "public"
+        "privacy": "unlisted"
         # "thumbnail": "resources/acuna.jpg",
     },
     "purge_files": False,
