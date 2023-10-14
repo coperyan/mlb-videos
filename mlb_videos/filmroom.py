@@ -392,7 +392,7 @@ class FilmRoom:
                     download_path=self.file_path,
                 )
             except Exception as e:
-                logging.warning("Downloading failed..")
+                logging.warning(f"Downloading failed.. {e}")
         else:
             pass
 
