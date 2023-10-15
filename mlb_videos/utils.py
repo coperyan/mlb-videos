@@ -1,5 +1,7 @@
 import os
+import ffmpeg
 import pathlib
+import pandas as pd
 from twilio.rest import Client
 
 from datetime import datetime, date, timedelta
@@ -227,6 +229,21 @@ def get_date_range(start_dt: str, end_dt: str) -> list:
             iter_date += timedelta(days=1)
 
     return dates
+
+
+def get_video_info(path: str):
+    info = ffmpeg.probe(path)
+    d = {}
+    video_info = [x for x in info.get("streams") if x.get("codec_type") == "video"]
+    audio_info = [x for x in info.get("streams") if x.get("codec_type") == "audio"]
+    duration = float(info.get("format").get("duration"))
+    width = video_info.get("width")
+    height = video_info.get("height")
+    fps = round(
+        float(info.get("nb_frames")) / float(info.get("format").get("duration")), 0
+    )
+    filesize = float(info.get("format").get("size")) / 1000000
+    return duration, width, height, fps, filesize
 
 
 def twilio_message(to: str = os.environ.get("TWILIO_TO_PHONE"), message: str = None):
