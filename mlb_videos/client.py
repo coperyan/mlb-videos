@@ -15,6 +15,7 @@ from .compilation import Compilation
 from .youtube import YouTube
 
 from .utils import _PURGE_SUBFOLDERS
+from .utils import get_video_info
 
 from .analysis.umpire_calls import get_ump_calls
 from .analysis.delta_win_exp import get_pitcher_batter_delta_win_exp
@@ -33,9 +34,10 @@ class MLBVideoClient:
         self,
         project_name: str,
         project_path: str,
-        start_date: str,
-        end_date: str = None,
-        enable_cache: bool = False,
+        statcast_params: dict,
+        # start_date: str,
+        # end_date: str = None,
+        # enable_cache: bool = False,
         game_info: bool = False,
         player_info: bool = False,
         team_info: bool = False,
@@ -96,9 +98,11 @@ class MLBVideoClient:
         """
         self.project_name = project_name
         self.local_path = project_path
-        self.start_date = start_date
-        self.end_date = end_date
-        self.enable_cache = enable_cache
+        # self.start_date = start_date
+        # self.end_date = end_date
+        # self.enable_cache = enable_cache
+        self.statcast_params = statcast_params
+
         self.game_info = game_info
         self.player_info = player_info
         self.team_info = team_info
@@ -114,9 +118,11 @@ class MLBVideoClient:
         self.purge_files = purge_files
         self.missing_videos = []
 
-        self.statcast_df = Statcast(
-            start_date=start_date, end_date=end_date, enable_cache=enable_cache
-        ).get_df()
+        # self.statcast_df = Statcast(
+        #     start_date=start_date, end_date=end_date, enable_cache=enable_cache
+        # ).get_df()
+        self.statcast_df = Statcast(**self.statcast_params).get_df()
+
         self.df = self.statcast_df.copy()
 
         if game_info:
@@ -291,6 +297,21 @@ class MLBVideoClient:
 
         self.df[["video_file_name", "video_file_path"]] = self.df.apply(
             lambda x: self._perform_filmroom_search(x, params),
+            axis=1,
+            result_type="expand",
+        )
+        self.df[
+            [
+                "video_duration",
+                "video_width",
+                "video_height",
+                "video_fps",
+                "video_filesize",
+            ]
+        ] = self.df.apply(
+            lambda x: get_video_info(x["video_file_path"])
+            if not pd.isnull(x["video_file_path"])
+            else (None, None, None, None, None),
             axis=1,
             result_type="expand",
         )
