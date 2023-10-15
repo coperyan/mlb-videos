@@ -300,21 +300,21 @@ class MLBVideoClient:
             axis=1,
             result_type="expand",
         )
-        self.df[
-            [
-                "video_duration",
-                "video_width",
-                "video_height",
-                "video_fps",
-                "video_filesize",
-            ]
-        ] = self.df.apply(
-            lambda x: get_video_info(x["video_file_path"])
-            if not pd.isnull(x["video_file_path"])
-            else (None, None, None, None, None),
-            axis=1,
-            result_type="expand",
-        )
+        # self.df[
+        #     [
+        #         "video_duration",
+        #         "video_width",
+        #         "video_height",
+        #         "video_fps",
+        #         "video_filesize",
+        #     ]
+        # ] = self.df.apply(
+        #     lambda x: get_video_info(x["video_file_path"])
+        #     if not pd.isnull(x["video_file_path"])
+        #     else (None, None, None, None, None),
+        #     axis=1,
+        #     result_type="expand",
+        # )
 
     def sort_df(self, fields: Union[list, str], ascending: Union[list, bool]):
         """Sort dataframe based on multiple fields
