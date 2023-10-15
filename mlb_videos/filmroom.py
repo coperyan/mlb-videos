@@ -359,27 +359,11 @@ class FilmRoom:
         self.metadata = self._clip_metadata(clip_json)
         self._clip_feeds(clip_json)
 
-    def get_clip_filename(self):
-        return (
-            f"{self.metadata['date']}_"
-            f"{self.metadata['slug']}_"
-            f"{self.feed_choice['id']}.mp4"
-        )
-
-    def get_clip_filepath(self):
-        return os.path.join(
-            self.download_path,
-            (
-                f"{self.metadata['date']}_"
-                f"{self.metadata['slug']}_"
-                f"{self.feed_choice['id']}.mp4"
-            ),
-        )
-
     def download_clip(self):
         if self.feed_choice.get("url"):
             try:
                 self.file_name = (
+                    f"{self.pitch.get('pitch_id').replace('|','_')}_"
                     f"{self.metadata['date']}_"
                     f"{self.metadata['slug']}_"
                     f"{self.feed_choice['id']}.mp4"
@@ -398,9 +382,9 @@ class FilmRoom:
 
     def get_file_info(self):
         if self.download:
-            return (self.get_clip_filename(), self.get_clip_filepath())
+            return (self.file_name, self.file_path)
         else:
-            return (self.get_clip_filename(), None)
+            return (self.file_name, None)
 
 
 # clips = []
