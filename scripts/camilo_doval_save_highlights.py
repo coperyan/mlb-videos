@@ -65,6 +65,18 @@ data.compilation_params = {
     "max_clip_length": 20,
 }
 data.create_compilation()
-
-# 717852|78|5,
-# data.df.query("game_pk==717852 & at_bat_number==78 & pitch_number==5")
+data.youtube_params = {
+    "title": "Camilo Doval | Each of his 39 Saves (SF Giants 2023)",
+    "description": "",
+    "tags": [
+        "mlb 2023",
+        "best closer",
+        "2023 giants",
+        "san francisco giants",
+        "camilo doval",
+    ],
+    "playlist": "San Francisco Giants - Player Highlights",
+    "privacy": "private",
+    "thumbnail": "resources/camilo_doval_1.jpeg",
+}
+data.upload_youtube()
