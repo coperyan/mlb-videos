@@ -38,6 +38,7 @@ data = MLBVideoClient(
 )
 data.transform_statcast("umpire_calls")
 data.query_df("release_speed >= 60")
+
 data.query_df("total_miss > 0")
 data.rank_df(
     name="total_miss_rank",
@@ -46,7 +47,20 @@ data.rank_df(
     ascending=[False],
     keep_sort=False,
 )
-data.query_df("total_miss_rank <= 100")
+
+##Add adjusted ranks for balls?
+data.rank_df(
+    name="pitch_type_total_miss_rank",
+    group_by=["description"],
+    fields=["total_miss"],
+    ascending=[False],
+    keep_sort=False,
+)
+data.query_df(
+    "(description == 'called_strike' & pitch_type_total_miss_rank <= 70) | (description == 'ball' & pitch_type_total_miss_rank <= 30)"
+)
+
+# data.query_df("total_miss_rank <= 100")
 data.sort_df(fields=["total_miss"], ascending=[True])
 
 data._get_filmroom_videos(params={"download": True, "feed": "best"})
@@ -58,7 +72,7 @@ data.compilation_params = {
 }
 data.create_compilation()
 data.youtube_params = {
-    "title": "MLB Umpires | Top 100 Worst Calls in 2023",
+    "title": "MLB Umpires | Top 100 Worst Calls in 2023 (v2)",
     "description": "",
     "tags": ["mlb 2023", "worst calls", "angel hernandez", "top 100"],
     "playlist": "Umpires - Worst Calls",
