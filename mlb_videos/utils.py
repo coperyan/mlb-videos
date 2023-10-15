@@ -232,6 +232,18 @@ def get_date_range(start_dt: str, end_dt: str) -> list:
 
 
 def get_video_info(path: str):
+    """Uses FFMPEG library to obtain video metadata
+
+    Parameters
+    ----------
+        path : str
+            Path to local video
+
+    Returns
+    -------
+        list of obj
+            duration, width, height, etc.
+    """
     info = ffmpeg.probe(path)
     d = {}
     video_info = [x for x in info.get("streams") if x.get("codec_type") == "video"]
