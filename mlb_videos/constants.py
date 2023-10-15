@@ -58,11 +58,6 @@ _SEASON_DATES = {
     2023: (date(2023, 3, 30), date(2023, 11, 15)),
 }
 
-_CAPTION_SETUP = {
-    "release_speed": {"format": float, "scale": 1, "suffix": "mph"},
-    "launch_speed": {"format": float, "scale": 1, "suffix": "mph"},
-    "hit_distance_sc": {"format": int, "scale": 0, "suffix": "ft"},
-}
 
 _PITCH_TYPES = {
     "FF": {"Name": "Four-Seam Fastball", "Group": "Fastball"},
