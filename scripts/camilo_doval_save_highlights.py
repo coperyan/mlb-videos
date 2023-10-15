@@ -35,6 +35,9 @@ logging.info(f"Got detail for {len(games)} games..")
 games = [
     r.get("game_pk") for _, r in games.iterrows() if r.get("save_id") == _PLAYER_ID
 ]
+
+# games = [716381, 717674, 717375, 717702]
+
 logging.info(f"Found {len(games)} save(s)..")
 
 data = MLBVideoClient(
@@ -53,7 +56,15 @@ data.rank_df(
     keep_sort=False,
 )
 data.query_df("pitch_in_game_rank == 1 or events == 'strikeout'")
-data.sort_df(fields=["pitch_id"], ascending=[True])
+data._reset_df_sort()
 data._get_filmroom_videos(params={"download": True, "feed": "best"})
-data.compilation_params = {"use_intro": True, "max_clip_length": _MAX_CLIP_LEN}
+data.compilation_params = {
+    "use_intro": True,
+    "add_transitions": True,
+    "transition_padding": 0.5,
+    "max_clip_length": 20,
+}
 data.create_compilation()
+
+# 717852|78|5,
+# data.df.query("game_pk==717852 & at_bat_number==78 & pitch_number==5")
