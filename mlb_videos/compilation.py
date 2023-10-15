@@ -20,10 +20,16 @@ _FPS_DEFAULT = 30
 _CAPTION_FONT = 75
 _CLIP_LIMIT = 100
 _COMP_SUBFOLDER = "compilations"
-_INTRO_PATH = os.path.join(
-    pathlib.Path(f"{os.path.dirname(os.path.abspath(__file__))}").parent,
-    "resources/intro.mp4",
-)
+_INTROS = {
+    "720p": os.path.join(
+        pathlib.Path(f"{os.path.dirname(os.path.abspath(__file__))}").parent,
+        "resources/intro_720.mp4",
+    ),
+    "1080p": os.path.join(
+        pathlib.Path(f"{os.path.dirname(os.path.abspath(__file__))}").parent,
+        "resources/intro_1080.mp4",
+    ),
+}
 
 
 class Compilation:
@@ -35,8 +41,9 @@ class Compilation:
         use_intro: bool = False,
         metric_caption: str = None,
         player_caption: str = None,
-        resize_videos: tuple = None,
-        **kwargs,
+        resize_resolution: tuple = None,
+        max_clip_length: float = None,
+        fps: int = _FPS_DEFAULT,
     ):
         self.title = title
         self.df = df
@@ -44,7 +51,9 @@ class Compilation:
         self.use_intro = use_intro
         self.metric_caption = metric_caption
         self.player_caption = player_caption
-        self.resize_videos = resize_videos
+        self.resize_resolution = resize_resolution
+        self.max_clip_length = max_clip_length
+        self.fps = fps
 
         self.clip_files = [
             os.path.join(self.local_path, f)
@@ -73,7 +82,7 @@ class Compilation:
 
     def _resize_video(self, path: str):
         new_path = path.replace(".mp4", "_rsz.mp4")
-        cmd = f"ffmpeg -i {path} -vf scale=1920:1080 -preset slow -crf 18 {new_path}"
+        cmd = f"ffmpeg -i {path} -vf scale={self.resize_resolution[0]}:{self.resize_resolution[1]} -preset slow -crf 18 {new_path}"
         subprocess.call(cmd, shell=True)
 
     def _generate_caption(self, pitch: pd.Series) -> str:
@@ -114,13 +123,13 @@ class Compilation:
 
     def _create_clip_obj(self, pitch: pd.Series):
         if os.path.exists(pitch["video_file_path"]):
-            if self.resize_videos:
+            if self.resize_resolution:
                 self._resize_video(pitch["video_file_path"])
 
             clip_obj = VideoFileClip(
                 (
                     pitch["video_file_path"]
-                    if not self.resize_videos
+                    if not self.resize_resolution
                     else f"{pitch['video_file_path'].replace('.mp4','_rsz.mp4')}"
                 ),
                 fps_source="fps",
@@ -129,6 +138,10 @@ class Compilation:
             if any([self.metric_caption, self.player_caption]):
                 caption_obj = self._build_caption_clip(self._generate_caption(pitch))
                 clip_obj = CompositeVideoClip([clip_obj, caption_obj])
+
+            if self.max_clip_length and clip_obj.duration > self.max_clip_length:
+                clip_obj = clip_obj.subclip(0, self.max_clip_length)
+
             return clip_obj
 
         else:
@@ -145,8 +158,11 @@ class Compilation:
                 pass
 
     def _add_intro(self):
-        self.clip_objs.append(VideoFileClip(_INTRO_PATH, fps_source="fps"))
+        if self.resize_resolution:
+            self.clip_objs.append(VideoFileClip(_INTROS.get("1080p"), fps_source="fps"))
+        else:
+            self.clip_objs.append(VideoFileClip(_INTROS.get("720p"), fps_source="fps"))
 
     def _build_compilation(self):
         comp_obj = concatenate_videoclips(self.clip_objs, method="compose")
-        comp_obj.write_videofile(self.comp_file, fps=_FPS_DEFAULT)
+        comp_obj.write_videofile(self.comp_file, fps=self.fps)
