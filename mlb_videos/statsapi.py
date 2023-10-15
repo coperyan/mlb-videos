@@ -5,6 +5,9 @@ from tqdm import tqdm
 import concurrent.futures
 from typing import Union
 
+from .constants import Teams
+from .utils import yesterday
+
 import logging
 import logging.config
 
@@ -13,6 +16,7 @@ logger = logging.getLogger(__name__)
 _GAME_URL = "https://statsapi.mlb.com/api/v1.1/game/{0}/feed/live"
 _PLAYER_URL = "https://statsapi.mlb.com/api/v1/people/{0}"
 _PLAYER_SITE_URL = "https://www.mlb.com/player/{0}"
+_SCHEDULE_URL = "https://statsapi.mlb.com/api/v1/schedule"
 _CONCURRENT_THRESHOLD = 10
 
 _SOCIALS = [
@@ -45,6 +49,21 @@ _GAME_ROUTES = {
         "Columns": ["name"],
         "Custom": False,
     },
+    "Winner": {
+        "Route": ["liveData", "decisions", "winner"],
+        "Columns": ["id"],
+        "Custom": False,
+    },
+    "Loser": {
+        "Route": ["liveData", "decisions", "loser"],
+        "Columns": ["id"],
+        "Custom": False,
+    },
+    "Save": {
+        "Route": ["liveData", "decisions", "save"],
+        "Columns": ["id"],
+        "Custom": False,
+    },
     "Umpires": {
         "Route": ["liveData", "boxscore", "officials"],
         "Columns": ["Home Plate", "First Base", "Second Base", "Third Base"],
@@ -72,11 +91,8 @@ _PLAYER_FIELDS = [
 
 
 class Game:
-    def __init__(self, game_pk: Union[int, list]):
-        if isinstance(game_pk, int):
-            self.game_list = [game_pk]
-        else:
-            self.game_list = game_pk
+    def __init__(self, game_pks: list):
+        self.game_list = list(set(int(gpk) for gpk in game_pks))
         self.df_list = []
         self.df = None
         if len(self.df_list) >= _CONCURRENT_THRESHOLD:
@@ -104,10 +120,13 @@ class Game:
     def parse_response(self, data: dict) -> None:
         df = {"game_pk": data.get("gamePk")}
         for name, cfg in _GAME_ROUTES.items():
-            if cfg.get("Custom"):
-                df[name] = self._custom_route(name, cfg, data)
-            else:
-                df[name] = self._route(name, cfg, data)
+            try:
+                if cfg.get("Custom"):
+                    df[name] = self._custom_route(name, cfg, data)
+                else:
+                    df[name] = self._route(name, cfg, data)
+            except Exception as e:
+                continue
 
         df = pd.json_normalize(df, sep="_")
         df = df.rename(
@@ -189,6 +208,48 @@ class Player:
     def create_df(self):
         self.df = pd.concat(self.df_list, axis=0, ignore_index=True)
         self.df = self.df.sort_values("id", ascending=True)
+
+    def get_df(self) -> pd.DataFrame:
+        return self.df
+
+
+class Schedule:
+    def __init__(self, start_date: str, end_date: str = None, team: str = None):
+        self.start_date = start_date
+        self.end_date = end_date if end_date else yesterday()
+        self.team = team
+        self.team_id = Teams.get(self.team).get("mlb_id")
+        self.data = None
+        self.df = None
+        self._make_request()
+        self._create_schedule_df()
+
+    def _make_request(self):
+        resp = requests.get(
+            _SCHEDULE_URL,
+            params={
+                "sportId": 1,
+                "startDate": self.start_date,
+                "endDate": self.end_date,
+                "teamId": self.team_id,
+            },
+        )
+        self.data = resp.json()
+
+    def _create_schedule_df(self):
+        self.df = pd.DataFrame(
+            [
+                {
+                    "game_pk": game.get("gamePk"),
+                    "date": game.get("officialDate"),
+                    "away_team": game.get("teams").get("away").get("team").get("name"),
+                    "home_team": game.get("teams").get("home").get("team").get("name"),
+                    "venue": game.get("venue").get("name"),
+                }
+                for dates in self.data.get("dates")
+                for game in dates.get("games")
+            ]
+        )
 
     def get_df(self) -> pd.DataFrame:
         return self.df
