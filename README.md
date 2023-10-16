@@ -8,6 +8,8 @@ Baseball data, analysis, but automated; with video proof
 
 As a Giants fan, I was immensely proud of our 2021 season. I spent the rough offseason watching plenty of highlights from the record year, and ended up throwing together a few compilations. After manually collecting & editing a few -- the nagging `you can automate this` voice came into my head. 
 
+This solution provides all of the necessary resources to gather, analysis/transform, and visualize your data through video. 
+
 ## Overview
 
 ### Data 
@@ -28,6 +30,14 @@ From here, I use the `moviepy` package to create a compilation of these clips. I
 ### YouTube
 
 Finally, I use the YouTube API to upload the compilation. I've been able to add in some useful features here, categorizing compilations into playlists, adding relevant tags & thumbnails to improve the content quality. 
+
+## Configuration
+
+Most of the configuration can be managed by passing parameters to the [`MLBVideoClient`](mlb_videos/client.py) class.
+
+### Execution
+- Use the client wrapper [`MLBVideoClient`](mlb_videos.client.py) to pass all necessary paramters in one initialization
+- Import resources individually (i.e. [`Statcast`](mlb_videos.statcast.py), [`YouTube`](mlb_videos.youtube.py) to customize & build your own solution
 
 ## Examples
 
