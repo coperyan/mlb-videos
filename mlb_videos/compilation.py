@@ -19,11 +19,11 @@ _COMP_SUBFOLDER = "compilations"
 _INTROS = {
     "720p": os.path.join(
         pathlib.Path(f"{os.path.dirname(os.path.abspath(__file__))}").parent,
-        "resources/intro_720.mp4",
+        "src/mp4/intro_720.mp4",
     ),
     "1080p": os.path.join(
         pathlib.Path(f"{os.path.dirname(os.path.abspath(__file__))}").parent,
-        "resources/intro_1080.mp4",
+        "src/mp4/intro_1080.mp4",
     ),
 }
 _CAPTION_SETUP = {
