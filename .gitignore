@@ -1,58 +1,39 @@
 
-#Cache / Mac stuff
+#Cache files
 *.pyc
 *__pycache__/*
-*.DS_Store
 
-#Secret
-queries/
-creds/*.json
-.idea
+#Images
+*.DS_Store
 
 #Video/Audio
 *.mp4
 *.mp3
 
 #CSV downloads
-downloads/*.csv
-mlb_videos/data/*.csv
-tests/data/*.csv
-*2021.csv
-*2022.csv
-*2023.csv
+*.csv
 
 #Notes
 notes.txt
 
 #Logs
 *.log
-mlb_videos/logs
 
 #Project Files
-projects/
+projects/*
+!projects/__init__.py
 
-*.csv
+#Credentials
+*client_secret.json
+*oauth.json
 
-client_secret.json
-
-notes.txt
-
-
-resources/*
-!resources/__init__.py
-
-credentials/*
-!credentials/__init__.py
-
-
-
-*.oauth.json
-*.client_secret.json
-
-
-resources/*.jpg
-resoures/*.png
-
+#Package Stuff
 mlb_videos.egg-info*
 
+#Dev/archive/etc folders
 .archive/
+.dev/
+
+
+
+

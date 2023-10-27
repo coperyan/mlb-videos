@@ -1,6 +1,7 @@
 import os
+import ffmpeg
 import pathlib
-from twilio.rest import Client
+import pandas as pd
 
 from datetime import datetime, date, timedelta
 from dateutil.relativedelta import relativedelta
@@ -136,6 +137,15 @@ def setup_project(project_name: str, project_date: str = today()):
 
 
 def make_dirs_from_dict(d, current_dir="./"):
+    """Recursive - Builds Directory from Nested Dict
+
+    Parameters
+    ----------
+        d : _type_
+            Nested Dictionary representing directories
+        current_dir (str, optional): str, default "./"
+            Directory to build folders in
+    """
     for key, val in d.items():
         pathlib.Path(os.path.join(current_dir, key)).mkdir(parents=False, exist_ok=True)
         if type(val) == dict:
@@ -143,6 +153,20 @@ def make_dirs_from_dict(d, current_dir="./"):
 
 
 def setup_project2(project_name: str, project_date: str = today()):
+    """Setup Project Directories
+
+    Parameters
+    ----------
+        project_name : str
+            project name (top level folder name)
+        project_date (str, optional): str, default today()
+            date of project analysis -- could be month, week, or actual date
+
+    Returns
+    -------
+        _type_
+            Path to local projects folder directory
+    """
     project_tree = {
         "projects": {
             f"{project_name}": {
@@ -206,8 +230,28 @@ def get_date_range(start_dt: str, end_dt: str) -> list:
     return dates
 
 
-def twilio_message(to: str = os.environ.get("TWILIO_TO_PHONE"), message: str = None):
-    client = Client(os.environ.get("TWILIO_SID"), os.environ.get("TWILIO_TOKEN"))
-    message = client.messages.create(
-        to=to, from_=os.environ.get("TWILIO_PHONE"), body=message
+def get_video_info(path: str):
+    """Uses FFMPEG library to obtain video metadata
+
+    Parameters
+    ----------
+        path : str
+            Path to local video
+
+    Returns
+    -------
+        list of obj
+            duration, width, height, etc.
+    """
+    info = ffmpeg.probe(path)
+    d = {}
+    video_info = [x for x in info.get("streams") if x.get("codec_type") == "video"]
+    audio_info = [x for x in info.get("streams") if x.get("codec_type") == "audio"]
+    duration = float(info.get("format").get("duration"))
+    width = video_info.get("width")
+    height = video_info.get("height")
+    fps = round(
+        float(info.get("nb_frames")) / float(info.get("format").get("duration")), 0
     )
+    filesize = float(info.get("format").get("size")) / 1000000
+    return duration, width, height, fps, filesize

@@ -1,4 +1,0 @@
-https://stackoverflow.com/questions/66145647/youtube-data-api-v3-refresh-token-keeps-expiring-on-app-with-publishing-status-s
-https://stackoverflow.com/questions/64719179/how-to-bypass-entering-authentication-code-to-authorize-my-code-everytime-i-use/64719550#64719550
-https://developers.google.com/youtube/v3/guides/moving_to_oauth#service-accounts-do-not-work-with-the-youtube-api
-https://developers.google.com/youtube/v3/docs/errors#youtube.api.RequestContextError-unauthorized-youtubeSignupRequired

@@ -17,6 +17,12 @@ import logging.config
 
 logger = logging.getLogger(__name__)
 
+"""
+https://developers.google.com/youtube/v3/guides/uploading_a_video
+https://developers.google.com/youtube/v3/guides/authentication
+be/v3/sample_requests
+"""
+
 # Explicitly tell the underlying HTTP transport library not to retry, since
 # we are handling retry logic ourselves.
 httplib2.RETRIES = 1
@@ -53,6 +59,11 @@ _YOUTUBE_API_VERSION = "v3"
 
 
 class YouTube:
+    """YouTube Client
+
+    Utilizes the YouTube API to upload a local file to a YouTube video.
+    """
+
     def __init__(self, file_path: str, params: dict = None):
         """Initialize YouTube class
 

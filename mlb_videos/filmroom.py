@@ -212,6 +212,8 @@ _FILMROOM_FEED_TYPES = {
 
 
 class FilmRoom:
+    """_summary_"""
+
     def __init__(
         self,
         pitch: pd.Series,
@@ -220,6 +222,21 @@ class FilmRoom:
         feed: str = _FILMROOM_DEFAULT_FEED,
         download: bool = _FILMROOM_DEFAULT_DOWNLOAD,
     ):
+        """_summary_
+
+        Parameters
+        ----------
+            pitch : pd.Series
+                Pitch row from Client.df -- attributes used for search
+            local_path (str, optional): str, default None
+                local project path (in case we have downloads enabled)
+            query_params (list, optional): list, default _FILMROOM_DEFAULT_PARAMETERS
+                parameters (attributes of the pitch) we want to include in the video query
+            feed (str, optional): str, default _FILMROOM_DEFAULT_FEED
+                feed priority/selection -- links to _FILMROOM_FEED_TYPES
+            download (bool, optional): bool, default _FILMROOM_DEFAULT_DOWNLOAD
+                whether to download search results or not
+        """
         self.pitch = pitch
         self.query_params = query_params
         self.feed = _FILMROOM_FEED_TYPES.get(_FILMROOM_DEFAULT_FEED, "Optimal")
@@ -237,6 +254,13 @@ class FilmRoom:
             self.download_clip()
 
     def _build_search_query(self, exclude_params: list = []):
+        """Build Play >> Search Query
+
+        Parameters
+        ----------
+            exclude_params (list, optional): list, default []
+                List of play attributes to 'exclude' from the query
+        """
         query = ""
         if exclude_params:
             query_params = [x for x in self.query_params if x not in exclude_params]
@@ -271,6 +295,31 @@ class FilmRoom:
         download: bool = False,
         download_path: str = None,
     ) -> Union[Dict, None]:
+        """_summary_
+
+        Parameters
+        ----------
+            url : str
+                Filmroom endpoint to query
+            request_type : str
+                Type of query to perform (search, clip, download)
+            return_json (bool, optional): bool, default False
+                Boolean of whether to return JSON in function
+            download (bool, optional): bool, default False
+                Boolean of whether to download media @ url
+            download_path (str, optional): str, default None
+                Path to write the file to (if downloading only)
+
+        Raises
+        ------
+            Exception
+                Raises exception if bad request or status
+
+        Returns
+        -------
+            Union[Dict, None]
+                Only return is json if requested
+        """
         headers = _FILMROOM_HEADERS.get(request_type)
         resp_path = _FILMROOM_RESPONSE_PATH.get(request_type)
         resp = requests.get(url, headers=headers)
@@ -293,6 +342,18 @@ class FilmRoom:
                 logging.info(f"Wrote clip to local store: {download_path}")
 
     def _clip_metadata(self, data: dict) -> dict:
+        """Acquire Clip Metadata from dictionary
+
+        Parameters
+        ----------
+            data : dict
+                Raw dictionary to parse
+
+        Returns
+        -------
+            dict
+                Clean dictionary with needed metadata
+        """
         metadata = {}
         for k, v in _FILMROOM_METADATA_PATH.items():
             data_copy = data.copy()
@@ -308,6 +369,26 @@ class FilmRoom:
         return metadata
 
     def _clip_feeds(self, data: dict) -> dict:
+        """Select Desired Video Clip
+
+        Based on available feeds and priority configuration
+        Pick the best available feed for the video download
+
+        Parameters
+        ----------
+            data : dict
+                Feed info from clip request
+
+        Raises
+        ------
+            Exception
+                Raises an exception if no feeds are found.
+
+        Returns
+        -------
+            dict
+                Dictionary of feed configuration, URL for download, etc
+        """
         feeds = []
         for cf in data.get("feeds"):
             for pb in cf.get("playbacks"):
@@ -334,6 +415,13 @@ class FilmRoom:
             raise Exception("No valid feeds found.")
 
     def perform_search(self):
+        """Perform Play Search based on Statcast Pitch
+
+        Search based on the URL created through statcast pitch attribs
+        If fails, try to remove the "inning" parameter
+        If no clips found, raise warnings
+
+        """
         search_json = self._make_request(
             self.search_url, request_type="Search", return_json=True
         )
@@ -350,6 +438,12 @@ class FilmRoom:
             logging.warning(f"Search query did not return any clips..")
 
     def get_clip(self):
+        """Perform Clip Search for Play
+
+        Based on play_id identified through statcast >> filmroom search,
+        Attempt to find the clip feeds for that play_id
+        Then call self._clip_feeds() to choose the video feed to DL
+        """
         clip_json = self._make_request(
             _FILMROOM_QUERIES.get("Clip").replace("slug_id", self.play_id),
             request_type="Clip",
@@ -359,27 +453,16 @@ class FilmRoom:
         self.metadata = self._clip_metadata(clip_json)
         self._clip_feeds(clip_json)
 
-    def get_clip_filename(self):
-        return (
-            f"{self.metadata['date']}_"
-            f"{self.metadata['slug']}_"
-            f"{self.feed_choice['id']}.mp4"
-        )
-
-    def get_clip_filepath(self):
-        return os.path.join(
-            self.download_path,
-            (
-                f"{self.metadata['date']}_"
-                f"{self.metadata['slug']}_"
-                f"{self.feed_choice['id']}.mp4"
-            ),
-        )
-
     def download_clip(self):
+        """Download Filmroom Clip
+
+        Using the feed choice from self._clip_feeds()
+        Establish a connection to the URL, read in chunks and write to local file
+        """
         if self.feed_choice.get("url"):
             try:
                 self.file_name = (
+                    f"{self.pitch.get('pitch_id').replace('|','_')}_"
                     f"{self.metadata['date']}_"
                     f"{self.metadata['slug']}_"
                     f"{self.feed_choice['id']}.mp4"
@@ -392,28 +475,19 @@ class FilmRoom:
                     download_path=self.file_path,
                 )
             except Exception as e:
-                logging.warning("Downloading failed..")
+                logging.warning(f"Downloading failed.. {e}")
         else:
             pass
 
-    def get_file_info(self):
+    def get_file_info(self) -> tuple:
+        """Get File Info
+        (File Name, File Path)
+
+        Returns
+        -------
+            tuple(filename, file_path)
+        """
         if self.download:
-            return (self.get_clip_filename(), self.get_clip_filepath())
+            return (self.file_name, self.file_path)
         else:
-            return (self.get_clip_filename(), None)
-
-
-# clips = []
-# for index, row in df.iterrows():
-#     try:
-#         iter_clip = Clip(
-#             pitch=row, download=True, download_path="../projects/test/2023-08-17/clips"
-#         )
-#         iter_clip._build_search_query()
-#         iter_clip.perform_search()
-#         iter_clip.get_clip()
-#         iter_clip.download_clip()
-#     except Exception as e:
-#         print(row["pitch_id"] + "\n" + str(e))
-#         pass
-#     clips.append(iter_clip)
+            return (self.file_name, None)

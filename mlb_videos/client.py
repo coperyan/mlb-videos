@@ -9,12 +9,13 @@ logger = logging.getLogger(__name__)
 
 from .constants import Teams
 from .statsapi import Game, Player
-from .statcast import Statcast
+from .statcast import Statcast, _DEFAULT_SORT
 from .filmroom import FilmRoom
 from .compilation import Compilation
 from .youtube import YouTube
 
 from .utils import _PURGE_SUBFOLDERS
+from .utils import get_video_info
 
 from .analysis.umpire_calls import get_ump_calls
 from .analysis.delta_win_exp import get_pitcher_batter_delta_win_exp
@@ -33,9 +34,7 @@ class MLBVideoClient:
         self,
         project_name: str,
         project_path: str,
-        start_date: str,
-        end_date: str = None,
-        enable_cache: bool = False,
+        statcast_params: dict = None,
         game_info: bool = False,
         player_info: bool = False,
         team_info: bool = False,
@@ -52,18 +51,18 @@ class MLBVideoClient:
     ):
         """MLB Video Client - handles end-to-end
 
+        If statcast_params are not passed, all downstream params are stored, but not performed
+        The client will not fail, but will simply remind you to add params and re-initialize OR
+            apply downstream functions manually
+
         Parameters
         ----------
             project_name : str
                 used for storing project files in specific project dir
             project_path : str
                 local path to store project files
-            start_date : str
-                start date for statcast query
-            end_date (str, optional): str, default None
-                end date for statcast query (if None, statcast sets to today)
-            enable_cache (bool, optional): bool, default False
-                Cache statcast data locally for re-use
+            statcast_params : dict
+                dictionary of params to pass to statcast API
             game_info (bool, optional): bool, default False
                 Expand data model to StatsAPI and gather game info_
             player_info (bool, optional): bool, default False
@@ -96,9 +95,8 @@ class MLBVideoClient:
         """
         self.project_name = project_name
         self.local_path = project_path
-        self.start_date = start_date
-        self.end_date = end_date
-        self.enable_cache = enable_cache
+        self.statcast_params = statcast_params
+
         self.game_info = game_info
         self.player_info = player_info
         self.team_info = team_info
@@ -114,37 +112,60 @@ class MLBVideoClient:
         self.purge_files = purge_files
         self.missing_videos = []
 
-        self.statcast_df = Statcast(
-            start_date=start_date, end_date=end_date, enable_cache=enable_cache
-        ).get_df()
-        self.df = self.statcast_df.copy()
+        if self.statcast_params:
+            self.get_statcast_df()
 
-        if game_info:
-            self.add_game_info()
-        if player_info:
-            self.add_player_info()
-        if team_info:
-            self.add_team_info()
-        if analysis:
-            for mod in self.analysis:
-                self.transform_statcast(mod)
+            if game_info:
+                self.add_game_info()
+            if player_info:
+                self.add_player_info()
+            if team_info:
+                self.add_team_info()
+            if analysis:
+                for mod in self.analysis:
+                    self.transform_statcast(mod)
 
-        if queries:
-            self._perform_queries()
+            if queries:
+                self._perform_queries()
 
-        if steps:
-            self._perform_steps()
+            if steps:
+                self._perform_steps()
 
-        if self.search_filmroom:
-            self._get_filmroom_videos(params=self.filmroom_params)
+            if self.search_filmroom:
+                self._get_filmroom_videos(params=self.filmroom_params)
 
-        if build_compilation:
-            self.create_compilation()
-        if youtube_upload:
-            self.upload_youtube()
+            if build_compilation:
+                self.create_compilation()
+            if youtube_upload:
+                self.upload_youtube()
 
-        if purge_files:
-            self.purge_project_media()
+            if purge_files:
+                self.purge_project_media()
+
+        else:
+            logging.warning(
+                f"No statcast params passed - all downstream functions have been ignored."
+            )
+            pass
+
+    def get_statcast_df(self, statcast_params: dict = None):
+        """Get Statcast DF
+
+        Parameters
+        ----------
+            statcast_params (dict, optional): dict, default None
+                dictionary of new statcast params to set
+                if none, will use self.statcast_params?
+        """
+        if not statcast_params and self.statcast_params:
+            statcast_params = self.statcast_params
+        elif statcast_params:
+            self.statcast_params = statcast_params
+        else:
+            logging.info(f"No statcast params -- try again.")
+            return
+
+        self.df = Statcast(**self.statcast_params).get_df()
 
     def purge_project_media(self):
         """Deletes local store of media files (video, data, etc.)"""
@@ -294,6 +315,21 @@ class MLBVideoClient:
             axis=1,
             result_type="expand",
         )
+        # self.df[
+        #     [
+        #         "video_duration",
+        #         "video_width",
+        #         "video_height",
+        #         "video_fps",
+        #         "video_filesize",
+        #     ]
+        # ] = self.df.apply(
+        #     lambda x: get_video_info(x["video_file_path"])
+        #     if not pd.isnull(x["video_file_path"])
+        #     else (None, None, None, None, None),
+        #     axis=1,
+        #     result_type="expand",
+        # )
 
     def sort_df(self, fields: Union[list, str], ascending: Union[list, bool]):
         """Sort dataframe based on multiple fields
@@ -338,9 +374,9 @@ class MLBVideoClient:
     def rank_df(
         self,
         name: str,
-        group_by: Union[list, str],
         fields: Union[list, str],
         ascending: Union[list, bool],
+        group_by: Union[list, str] = None,
         keep_sort: bool = False,
     ):
         """Rank members of dataframe, multi-column, add field repr
@@ -380,9 +416,15 @@ class MLBVideoClient:
             self.df[name] = self.df[name].cumsum()
 
         if keep_sort:
-            self.df = self.df.sort_values(by=["pitch_id"], ascending=True)
+            self._reset_df_sort()
         self.df = self.df.reset_index(drop=True)
         logging.info(f"Added rank field: {name} to DF")
+
+    def _reset_df_sort(self):
+        """Reset df sort order
+        ["game_date", "game_pk", "at_bat_number", "pitch_number"]
+        """
+        self.df = self.df.sort_values(by=_DEFAULT_SORT, ascending=True)
 
     def get_df(self) -> pd.DataFrame:
         """Get DataFrame
@@ -405,19 +447,28 @@ class MLBVideoClient:
                 self.query_df(**step.get("params"))
             elif step.get("type") == "rank":
                 self.rank_df(**step.get("params"))
+            elif step.get("type") == "sort":
+                self.sort_df(**step.get("params"))
         self.df = self.df.reset_index(drop=True)
 
     def create_compilation(self):
         """Init Compilation class, generate file"""
         self.build_compilation = True
-        # self._validate_videos()
+
+        # Callout any missing clip(s)
+        missing_clips = self.df[self.df["video_file_name"].notnull() == False]
+        if len(missing_clips) > 0:
+            logging.warning(
+                f"Missing clips for following:\n{missing_clips.pitch_id.values.tolist()}"
+            )
+
         comp = Compilation(
-            title=self.project_name,
-            df=self.df,
-            local_path=self.local_path,
+            df=self.df[self.df["video_file_name"].notnull() == True],
+            project_title=self.project_name,
+            project_path=self.local_path,
             **self.compilation_params,
         )
-        self.comp_file = comp.get_comp_path()
+        self.comp_file = comp.comp_file
 
     def upload_youtube(self, youtube_params: dict = None):
         """Upload compilation to YouTube
