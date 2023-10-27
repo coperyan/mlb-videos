@@ -34,7 +34,7 @@ class MLBVideoClient:
         self,
         project_name: str,
         project_path: str,
-        statcast_params: dict,
+        statcast_params: dict = None,
         game_info: bool = False,
         player_info: bool = False,
         team_info: bool = False,
@@ -50,6 +50,10 @@ class MLBVideoClient:
         purge_files: bool = False,
     ):
         """MLB Video Client - handles end-to-end
+
+        If statcast_params are not passed, all downstream params are stored, but not performed
+        The client will not fail, but will simply remind you to add params and re-initialize OR
+            apply downstream functions manually
 
         Parameters
         ----------
@@ -108,36 +112,60 @@ class MLBVideoClient:
         self.purge_files = purge_files
         self.missing_videos = []
 
-        self.statcast_df = Statcast(**self.statcast_params).get_df()
+        if self.statcast_params:
+            self.get_statcast_df()
 
-        self.df = self.statcast_df.copy()
+            if game_info:
+                self.add_game_info()
+            if player_info:
+                self.add_player_info()
+            if team_info:
+                self.add_team_info()
+            if analysis:
+                for mod in self.analysis:
+                    self.transform_statcast(mod)
 
-        if game_info:
-            self.add_game_info()
-        if player_info:
-            self.add_player_info()
-        if team_info:
-            self.add_team_info()
-        if analysis:
-            for mod in self.analysis:
-                self.transform_statcast(mod)
+            if queries:
+                self._perform_queries()
 
-        if queries:
-            self._perform_queries()
+            if steps:
+                self._perform_steps()
 
-        if steps:
-            self._perform_steps()
+            if self.search_filmroom:
+                self._get_filmroom_videos(params=self.filmroom_params)
 
-        if self.search_filmroom:
-            self._get_filmroom_videos(params=self.filmroom_params)
+            if build_compilation:
+                self.create_compilation()
+            if youtube_upload:
+                self.upload_youtube()
 
-        if build_compilation:
-            self.create_compilation()
-        if youtube_upload:
-            self.upload_youtube()
+            if purge_files:
+                self.purge_project_media()
 
-        if purge_files:
-            self.purge_project_media()
+        else:
+            logging.warning(
+                f"No statcast params passed - all downstream functions have been ignored."
+            )
+            pass
+
+    def get_statcast_df(self, statcast_params: dict = None):
+        """Get Statcast DF
+
+        Parameters
+        ----------
+            statcast_params (dict, optional): dict, default None
+                dictionary of new statcast params to set
+                if none, will use self.statcast_params?
+        """
+        if not statcast_params and self.statcast_params:
+            statcast_params = self.statcast_params
+        elif statcast_params:
+            self.statcast_params = statcast_params
+        else:
+            logging.info(f"No statcast params -- try again.")
+            return
+
+        self.df = Statcast(**self.statcast_params).get_df()
 
     def purge_project_media(self):
         """Deletes local store of media files (video, data, etc.)"""
@@ -346,9 +374,9 @@ class MLBVideoClient:
     def rank_df(
         self,
         name: str,
-        group_by: Union[list, str],
         fields: Union[list, str],
         ascending: Union[list, bool],
+        group_by: Union[list, str] = None,
         keep_sort: bool = False,
     ):
         """Rank members of dataframe, multi-column, add field repr

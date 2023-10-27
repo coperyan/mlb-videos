@@ -32,9 +32,26 @@ _RETURN_COLS = [
 ]
 
 
-def generate_coords(sz_bot, sz_top, plate_x, plate_z):
-    """Basic calcs used to determine misses
-    Geometry...
+def generate_coords(
+    sz_bot: float, sz_top: float, plate_x: float, plate_z: float
+) -> dict:
+    """Generate Coordinates
+
+    Parameters
+    ----------
+        sz_bot : float
+            Strike Zone Bottom
+        sz_top : float
+            Strike Zone Top
+        plate_x : float
+            Where Ball Passed the plate (horizontaL)
+        plate_z : float
+            Where Ball Passed the plate (vertical)
+
+    Returns
+    -------
+        dict
+            Dictionary of various coordinates needed for call calcs
     """
     return {
         "W": (_ZONE_WIDTH),
@@ -48,6 +65,20 @@ def generate_coords(sz_bot, sz_top, plate_x, plate_z):
 
 
 def calc_adj_delta_win_exp(p: dict) -> float:
+    """Calc Adj Delta Win Exp
+
+    Calculates the impact to the team the call was against.
+
+    Parameters
+    ----------
+        p : dict
+            pitch information
+
+    Returns
+    -------
+        float
+            Delta Win Exp Change
+    """
     if p.get("description") == "ball":
         if p.get("inning_topbot") == "Bot" and p.get("delta_home_win_exp") > 0:
             return abs(p.get("delta_home_win_exp"))
@@ -69,6 +100,25 @@ def calc_adj_delta_win_exp(p: dict) -> float:
 
 
 def calc_strike_miss(p: dict) -> Tuple:
+    """Calc Strike Miss
+
+    For a called strike, calculates whether the call was missed horizontally,
+    vertically, and the sum of both -- along with the delta_win_exp_impact
+
+    Parameters
+    ----------
+        p : dict
+            pitch coordinate info
+
+    Returns
+    -------
+        Tuple
+            `miss_type` and `miss_inches` for
+                horizontal
+                vertical
+                total
+            also `miss_delta_win_exp_impact``
+    """
     if p.get("X") < p.get("X1"):
         horizontal_miss = round((p.get("X1") - p.get("X")) * 12.00, 2)
         horizontal_miss_type = "inside" if p.get("stand") == "R" else "outside"
@@ -116,6 +166,25 @@ def calc_strike_miss(p: dict) -> Tuple:
 
 
 def calc_ball_miss(p: dict) -> Tuple:
+    """Calc Ball Miss
+
+    For a called ball, calculates whether the call was in the strike zone
+    horizontally, vertically or both. Also calculates delta_win_exp_impact
+
+    Parameters
+    ----------
+        p : dict
+            pitch coordinate info
+
+    Returns
+    -------
+        Tuple
+            `miss_type` and `miss_inches` for
+                horizontal
+                vertical
+                total
+            also `miss_delta_win_exp_impact``
+    """
     if (p.get("X1") < p.get("X") and p.get("X") < p.get("X2")) and (
         p.get("Y1") < p.get("Y") and p.get("Y") < p.get("Y2")
     ):
@@ -168,6 +237,28 @@ def calc_ball_miss(p: dict) -> Tuple:
 
 
 def calculate_miss(p: pd.Series) -> Tuple:
+    """Calculate Miss
+
+    Calculate miss fields based on row of statcast data
+    If any fields are missing, ignore the row and return Nones
+
+    Parameters
+    ----------
+        p : pd.Series
+            pitch (row in statcast dataframe)
+
+    Returns
+    -------
+        Tuple
+            "horizontal_miss_type",
+            "horizontal_miss",
+            "vertical_miss_type",
+            "vertical_miss",
+            "total_miss_type",
+            "total_miss",
+            "miss_delta_win_exp_impact",
+
+    """
     if any(pd.isnull(v) for v in (p.plate_x, p.plate_z, p.sz_bot, p.sz_top)):
         return ([None, 0.00] * 3) + [0.00]
     elif any(v == 0 for v in (p.plate_x, p.plate_z, p.sz_bot, p.sz_top)):
@@ -185,6 +276,20 @@ def calculate_miss(p: pd.Series) -> Tuple:
 
 
 def get_ump_calls(df: pd.DataFrame) -> pd.DataFrame:
+    """Get Ump Calls
+
+    Wrapper for all functions within umpire calls analysis
+
+    Parameters
+    ----------
+        df : pd.DataFrame
+            Dataframe to transform
+
+    Returns
+    -------
+        pd.DataFrame
+            Transformed dataframe
+    """
     df[_RETURN_COLS] = df.swifter.apply(
         lambda x: calculate_miss(x), axis=1, result_type="expand"
     )

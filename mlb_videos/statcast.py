@@ -5,6 +5,7 @@ import requests
 import pandas as pd
 from tqdm import tqdm
 import concurrent.futures
+from typing import Union
 
 from .utils import yesterday, get_date_range
 
@@ -79,18 +80,31 @@ def parse_df(df: pd.DataFrame) -> pd.DataFrame:
 
 
 class Statcast:
+    CleanupArgs = [
+        "games",
+        "batters",
+        "pitchers",
+        "teams",
+        "pitch_types",
+        "events",
+        "descriptions",
+    ]
+
     """Statcast API Client"""
 
     def __init__(
         self,
         start_date: str = None,
         end_date: str = None,
-        games: list = None,
-        batters: list = None,
-        pitchers: list = None,
-        pitch_types: list = None,
-        events: list = None,
-        descriptions: list = None,
+        games: Union[list, int] = None,
+        batters: Union[list, int] = None,
+        pitchers: Union[list, int] = None,
+        teams: Union[list, str] = None,
+        # batter_teams: Union[list, str] = None,
+        # pitcher_teams: Union[list, str] = None,
+        pitch_types: Union[list, str] = None,
+        events: Union[list, str] = None,
+        descriptions: Union[list, str] = None,
         save_local: bool = False,
     ):
         """Initialize Statcast API Client
@@ -126,6 +140,9 @@ class Statcast:
         self.games = games
         self.batters = batters
         self.pitchers = pitchers
+        self.teams = teams
+        # self.batter_teams = batter_teams
+        # self.pitcher_teams = pitcher_teams
         self.pitch_types = pitch_types
         self.events = events
         self.descriptions = descriptions
@@ -136,6 +153,7 @@ class Statcast:
         self.df = None
 
         self._validate_args()
+        self._cleanup_args()
         self.concurrent_requests()
         self.create_df()
 
@@ -161,6 +179,20 @@ class Statcast:
             raise ValueError(
                 f"Must pass either start_date or games to API for iterative use."
             )
+
+    def _cleanup_args(self):
+        """Cleanup Args
+
+        Iterates over statcast params that can be list or single elements
+        Converts them to type list in case they were passed as a single x
+
+        """
+        for arg in self.CleanupArgs:
+            if (
+                not isinstance(getattr(self, arg), list)
+                and getattr(self, arg) is not None
+            ):
+                setattr(self, arg, [getattr(self, arg)])
 
     def _build_url(self, iter_val) -> str:
         """Build Statcast API Request URL
@@ -194,10 +226,10 @@ class Statcast:
             )
 
         if self.iteration_type == "games":
-            base_url = _REQUEST_URL + "&game_pk=" + str(iter_val)
+            base_url = base_url + "&game_pk=" + str(iter_val)
         elif self.iteration_type == "dates":
             base_url = (
-                _REQUEST_URL + "&game_date_gt=" + iter_val + "&game_date_lt=" + iter_val
+                base_url + "&game_date_gt=" + iter_val + "&game_date_lt=" + iter_val
             )
 
         if self.pitchers:
@@ -205,6 +237,23 @@ class Statcast:
 
         if self.batters:
             base_url += "".join([f"&batters_lookup[]={x}" for x in self.batters])
+
+        ##Handle teams
+        if (
+            self.iteration_type == "games"
+            or self.pitchers
+            or self.batters
+            and self.teams
+        ):
+            logging.warning(
+                f"Team parameter passed, but game, pitcher or batter already specified.. Not applying team filter."
+            )
+        elif self.teams:
+            (
+                base_url
+                + "&player_type=pitcher|batter|&hfTeam="
+                + "".join([f"{x}|" for x in self.teams])
+            )
 
         return base_url
 
@@ -228,6 +277,7 @@ class Statcast:
                 Dataframe for the iteration
         """
         resp = requests.get(self._build_url(iter_val), timeout=_REQUEST_TIMEOUT)
+        logging.info(f"Performed request for: {resp.url}")
         df = pd.read_csv(io.StringIO(resp.content.decode("utf-8")))
         df = parse_df(df)
         if df is not None and not df.empty:

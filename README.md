@@ -41,11 +41,15 @@ Most of the configuration can be managed by passing parameters to the [`MLBVideo
 - Use the client wrapper [`MLBVideoClient`](mlb_videos.client.py) to pass all necessary paramters in one initialization
 - Import resources individually (i.e. [`Statcast`](mlb_videos.statcast.py), [`YouTube`](mlb_videos.youtube.py) to customize & build your own solution
 
+## Installation
+
+`Add install info`
+
 ## Examples
 
-### [worst_calls_yesterday.py](scripts/worst_calls_yesterday.py)
+### Longest Home Runs (Last Month)
 
-Will add some more context here
+As an example, let's use the client to gather data & create a compilation of the longest home runs last month:
 
 ### Videos
 
