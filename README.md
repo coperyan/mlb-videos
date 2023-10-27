@@ -43,6 +43,7 @@ Most of the configuration can be managed by passing parameters to the [`MLBVideo
 
 ## Installation
 
+
 ### Package
 
 Install via PIP:
