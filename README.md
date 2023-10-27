@@ -1,4 +1,4 @@
-# mlb_videos
+# mlb-videos
 
 Baseball data, analysis, but automated; with video proof
 
@@ -40,6 +40,7 @@ Most of the configuration can be managed by passing parameters to the [`MLBVideo
 
 - Use the client wrapper [`MLBVideoClient`](mlb_videos.client.py) to pass all necessary paramters in one initialization
 - Import resources individually (i.e. [`Statcast`](mlb_videos.statcast.py), [`YouTube`](mlb_videos.youtube.py) to customize & build your own solution
+
 
 ## Installation
 
