@@ -38,12 +38,3 @@ Will add some more context here
 ### Videos
 
 #### [Hardest Hit Balls of July 2023 (YouTube)](https://youtu.be/xruZbacqlQ8)
-
-
-
-
-## References
-
-- James LeDoux [(pybaseball)](https://github.com/jldbc/pybaseball)
-- Todd Roberts [(MLB-StatsAPI)](https://github.com/toddrob99/MLB-StatsAPI)
-- [MoviePy](https://github.com/Zulko/moviepy)
