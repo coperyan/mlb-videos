@@ -7,7 +7,6 @@
 #Secret
 queries/
 creds/*.json
-.idea
 
 #Video/Audio
 *.mp4
