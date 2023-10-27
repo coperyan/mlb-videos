@@ -179,6 +179,11 @@ client.create_compilation()
 
 #### [Hardest Hit Balls of July 2023 (YouTube)](https://youtu.be/xruZbacqlQ8)
 
+## To-Do
+- Replace MoviePy with Adobe Premiere API
+- Expand statcast parameters
+- Start capturing additional data points (i.e. errors, catcher throwing runners out, etc.)
+
 ## Contribution
 
 If you have any questions, comments, concerns -- please feel free to reach out to me. Cheers!
