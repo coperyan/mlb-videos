@@ -59,6 +59,36 @@ cd mlb_videos
 pip install -e .
 ```
 
+### Other Dependencies
+
+#### FFMPEG
+
+FFMPEG is software used to handle everything video-related. It's used by `moviepy` when generating compilations, and is also useful for a ton of other cases.
+
+Visit FFMpeg's [website](https://ffmpeg.org/download.html) for the latest download link. 
+
+#### ImageMagick
+
+This is a dependency for the [moviepy](https://github.com/Zulko/moviepy/tree/master) package (specifically used for adding text to the compilations)
+
+For it to work correctly, you must add an environment variable, like so:
+
+- Name: `IMAGEMAGICK_BINARY`
+- Value: `C:\Program Files\ImageMagick-7.1.1-Q16-HDRI\magick.exe` or `/path/to/install/magick.exe`
+
+#### YouTube API Credentials
+
+If you want to utilize the YouTube API in this package, you will need to setup API credentials in the Google Cloud Console for your YouTube account. 
+
+Reference Step #1 in the [YouTube API quickstart for Python](https://developers.google.com/youtube/v3/quickstart/python). 
+
+Once you download the client_secret credentials, `mlb_videos` can reference it one of two ways:
+
+- It is in your working directory, stored as `credentials.json`
+- It is stored anywhere, with an environment variable declaring the path:
+  - Name: `YOUTUBE_API_SECRET`
+  - Value: `path/to/youtube/api/secret.json`
+
 ## Examples
 
 ### [Longest Home Runs (Last Month)](examples/longest_homers_last_month.py)
