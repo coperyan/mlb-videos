@@ -67,6 +67,8 @@ FFMPEG is software used to handle everything video-related. It's used by `moviep
 
 Visit FFMpeg's [website](https://ffmpeg.org/download.html) for the latest download link. 
 
+To verify correct installation & reference in your OS path, you can type `ffmpeg` in the terminal.
+
 #### ImageMagick
 
 This is a dependency for the [moviepy](https://github.com/Zulko/moviepy/tree/master) package (specifically used for adding text to the compilations)
@@ -177,8 +179,6 @@ client.create_compilation()
 
 #### [Hardest Hit Balls of July 2023 (YouTube)](https://youtu.be/xruZbacqlQ8)
 
-## References
+## Contribution
 
-- James LeDoux [(pybaseball)](https://github.com/jldbc/pybaseball)
-- Todd Roberts [(MLB-StatsAPI)](https://github.com/toddrob99/MLB-StatsAPI)
-- [MoviePy](https://github.com/Zulko/moviepy)
+If you have any questions, comments, concerns -- please feel free to reach out to me. Cheers!
