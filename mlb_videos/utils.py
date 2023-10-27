@@ -2,7 +2,6 @@ import os
 import ffmpeg
 import pathlib
 import pandas as pd
-from twilio.rest import Client
 
 from datetime import datetime, date, timedelta
 from dateutil.relativedelta import relativedelta
@@ -256,19 +255,3 @@ def get_video_info(path: str):
     )
     filesize = float(info.get("format").get("size")) / 1000000
     return duration, width, height, fps, filesize
-
-
-def twilio_message(to: str = os.environ.get("TWILIO_TO_PHONE"), message: str = None):
-    """Sends a message using the Twilio API
-
-    Parameters
-    ----------
-        to (str, optional): str, default os.environ.get("TWILIO_TO_PHONE")
-            phone number to text
-        message (str, optional): str, default None
-            message to text
-    """
-    client = Client(os.environ.get("TWILIO_SID"), os.environ.get("TWILIO_TOKEN"))
-    message = client.messages.create(
-        to=to, from_=os.environ.get("TWILIO_PHONE"), body=message
-    )

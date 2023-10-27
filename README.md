@@ -43,7 +43,21 @@ Most of the configuration can be managed by passing parameters to the [`MLBVideo
 
 ## Installation
 
-`Add install info`
+### Package
+
+Install via PIP:
+
+```shell
+pip install mlb_videos
+```
+
+Install directly from the repository:
+
+```shell
+git clone https://github.com/coperyan/mlb_videos
+cd mlb_videos
+pip install -e .
+```
 
 ## Examples
 
@@ -110,7 +124,7 @@ client.query_df("hr_distance_rank <= 10")
 ```
 
 
-#Now that we're filtered down to the top 10 -- it's time to perform a search of the FilmRoom for clips:
+Now that we're filtered down to the top 10 -- it's time to perform a search of the FilmRoom for clips:
 
 ```python
 #Feed refers to `mlb_videos.filmroom._FILMROOM_FEED_TYPES`
