@@ -2,6 +2,8 @@ import os
 import httplib2
 import http.client
 
+from mlb_videos._helpers import DotDict
+
 
 API_SERVICE_NAME = "youtube"
 API_VERSION = "v3"
@@ -46,26 +48,28 @@ PRIVACY_STATUSES = [
 PLAYLIST_MAX_RESULTS = 50
 
 
-ENDPOINTS = {
-    "video_insert": {
-        "snippet": {
-            "title": None,
-            "description": None,
-            "tags": None,
-            "categoryId": None,
-            "defaultLanguage": None,
-            "defaultAudioLanguage": None,
+ENDPOINTS = DotDict(
+    {
+        "video_insert": {
+            "snippet": {
+                "title": None,
+                "description": None,
+                "tags": None,
+                "categoryId": None,
+                "defaultLanguage": None,
+                "defaultAudioLanguage": None,
+            },
+            "status": {
+                "privacyStatus": None,
+                "publishAt": None,
+                "selfDeclaredMadeForKids": None,
+            },
         },
-        "status": {
-            "privacyStatus": None,
-            "publishAt": None,
-            "selfDeclaredMadeForKids": None,
+        "playlist_items_insert": {
+            "snippet": {
+                "playlistId": None,
+                "resourceId": {"kind": "youtube#video", "videoId": None},
+            }
         },
-    },
-    "playlist_items_insert": {
-        "snippet": {
-            "playlistId": None,
-            "resourceId": {"kind": "youtube#video", "videoId": None},
-        }
-    },
-}
+    }
+)

@@ -1,6 +1,8 @@
 import os
 from platform import python_version
 
+from mlb_videos._helpers import DotDict
+
 
 CLIENT_ID = os.environ["TWITTER_API_KEY"]
 CLIENT_SECRET = os.environ["TWITTER_API_SECRET"]
@@ -10,10 +12,12 @@ ACCESS_SECRET = os.environ["TWITTER_ACCESS_TOKEN_SECRET"]
 SCOPES = ["tweet.read", "users.read", "tweet.write"]
 USER_AGENT = f"Python API - v{python_version()}"
 
-ENDPOINTS = {
-    "create_tweet": "https://api.twitter.com/2/tweets",
-    "media_upload": "https://upload.twitter.com/1.1/media/upload.json",
-}
+ENDPOINTS = DotDict(
+    {
+        "create_tweet": "https://api.twitter.com/2/tweets",
+        "media_upload": "https://upload.twitter.com/1.1/media/upload.json",
+    }
+)
 
 
 VIDEO_TYPES = [".mp4", ".avi", ".h264"]
