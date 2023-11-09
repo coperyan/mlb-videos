@@ -5,6 +5,9 @@
 
 #Images
 *.DS_Store
+tests/*.jpg
+tests/*.png
+tests/*.jpeg
 
 #Video/Audio
 *.mp4

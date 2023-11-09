@@ -2,7 +2,7 @@
 
 Baseball data, analysis, but automated; with video proof
 
-![Shohei Ohtani Missile](src/img/MLB_Hardest_Hits_July_2023.gif)
+![Shohei Ohtani Missile](docs/src/MLB_Hardest_Hits_July_2023.gif)
 
 ## Background 
 
