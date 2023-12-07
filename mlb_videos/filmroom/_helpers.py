@@ -32,7 +32,7 @@ def choose_feed(priority: str, feeds: list) -> dict:
         return None
 
 
-def build_dict_from_nested_path(d: dict, paths: dict) -> dict:
+def build_dict_from_nested_path_with_keys(d: dict, paths: dict) -> dict:
     new_d = {}
     for new_key, path in paths.items():
         d_copy = d.copy()
@@ -43,3 +43,10 @@ def build_dict_from_nested_path(d: dict, paths: dict) -> dict:
         else:
             new_d[new_key] = None
     return new_d
+
+
+def build_dict_from_nested_path(d: dict, path: list) -> dict:
+    d_copy = d.copy()
+    for k in path:
+        d_copy = d_copy.get(k)
+    return d_copy

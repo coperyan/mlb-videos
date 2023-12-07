@@ -15,7 +15,11 @@ from mlb_videos.filmroom._constants import QUERIES
 from mlb_videos.filmroom._constants import QUERY_PARAMETERS
 from mlb_videos.filmroom._constants import QUERY_SUFFIX
 
-from mlb_videos.filmroom._helpers import build_dict_from_nested_path, choose_feed
+from mlb_videos.filmroom._helpers import (
+    build_dict_from_nested_path,
+    build_dict_from_nested_path_with_keys,
+    choose_feed,
+)
 
 
 class API:
@@ -122,14 +126,14 @@ class API:
             return []
 
     def search_clips(self, play_id: str, priority: str = "best") -> dict:
-        url = QUERIES.get("clip").replace("slug_id", play_id)
-        results = self._make_request(
+        url = QUERIES.get("clip").get("query").replace("slug_id", play_id)
+        results = self._get(
             url=url,
             headers=QUERIES.get("clip").get("headers"),
             resp_path=QUERIES.get("clip").get("resp_path"),
         )
         clip = results[0]
-        clip_metadata = build_dict_from_nested_path(clip, METADATA_PATHS)
+        clip_metadata = build_dict_from_nested_path_with_keys(clip, METADATA_PATHS)
         clip_feeds = self._get_feeds(clip)
         clip_feed = choose_feed(priority, clip_feeds)
         clip_metadata["file_name"] = (
