@@ -34,7 +34,7 @@ class Search:
 
     def _cleanup_kwargs(self):
         for k, v in self.kwargs.items():
-            if k not in ["start_date", "end_date"] and not isinstance(k, list):
+            if k not in ["start_date", "end_date"] and not isinstance(v, list):
                 self.kwargs[k] = [v]
 
         if "start_date" in self.kwargs and "end_date" not in self.kwargs:

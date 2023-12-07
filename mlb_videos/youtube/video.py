@@ -42,7 +42,10 @@ class Video:
                 kwargs[param] = val
 
         self.kwargs = kwargs
-        self.video_id = self.client.video_insert(self.file, **kwargs)
+        self.video_id = None
+
+    def upload(self):
+        self.video_id = self.client.video_insert(self.file, **self.kwargs)
 
         if self.thumbnail:
             self.client.thumbnails_set(self.video_id, self.thumbnail)

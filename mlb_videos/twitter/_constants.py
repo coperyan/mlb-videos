@@ -4,10 +4,10 @@ from platform import python_version
 from mlb_videos._helpers import DotDict
 
 
-CLIENT_ID = os.environ["TWITTER_API_KEY"]
-CLIENT_SECRET = os.environ["TWITTER_API_SECRET"]
+CONSUMER_KEY = os.environ["TWITTER_CONSUMER_KEY"]
+CONSUMER_SECRET = os.environ["TWITTER_CONSUMER_SECRET"]
 ACCESS_TOKEN = os.environ["TWITTER_ACCESS_TOKEN"]
-ACCESS_SECRET = os.environ["TWITTER_ACCESS_TOKEN_SECRET"]
+ACCESS_TOKEN_SECRET = os.environ["TWITTER_ACCESS_TOKEN_SECRET"]
 
 SCOPES = ["tweet.read", "users.read", "tweet.write"]
 USER_AGENT = f"Python API - v{python_version()}"

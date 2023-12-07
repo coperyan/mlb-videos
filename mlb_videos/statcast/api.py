@@ -60,8 +60,13 @@ class API:
         df[self.endpoint.uuid.name] = df.apply(
             lambda x: self.endpoint.uuid.delimiter.join(
                 [str(x.get(col)) for col in self.endpoint.uuid.get("keys")]
-            )
+            ),
+            axis=1,
         )
+        df = df[
+            [self.endpoint.uuid.name]
+            + [col for col in df.columns.values if col != self.endpoint.uuid.name]
+        ]
         if self.endpoint.fill_na_cols:
             df[self.endpoint.fill_na_cols] = df[self.endpoint.fill_na_cols].fillna(0)
 

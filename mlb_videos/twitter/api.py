@@ -5,11 +5,12 @@ import mimetypes
 from typing import Union
 from requests_oauthlib import OAuth1
 
-from mlb_videos._helpers import get_file_information
+from mlb_videos.twitter._helpers import read_file_bytes
+
 from mlb_videos.twitter._constants import ACCESS_TOKEN
-from mlb_videos.twitter._constants import ACCESS_SECRET
-from mlb_videos.twitter._constants import CLIENT_ID
-from mlb_videos.twitter._constants import CLIENT_SECRET
+from mlb_videos.twitter._constants import ACCESS_TOKEN_SECRET
+from mlb_videos.twitter._constants import CONSUMER_KEY
+from mlb_videos.twitter._constants import CONSUMER_SECRET
 from mlb_videos.twitter._constants import DEFAULT_CHUNK_SIZE
 from mlb_videos.twitter._constants import ENDPOINTS
 from mlb_videos.twitter._constants import MAX_CHUNK_SIZE
@@ -18,53 +19,43 @@ from mlb_videos.twitter._constants import SCOPES
 from mlb_videos.twitter._constants import USER_AGENT
 from mlb_videos.twitter._constants import VIDEO_TYPES
 
+from mlb_videos.twitter.tweet import Tweet
+
 
 class API:
     def __init__(self):
         self.session = None
         self.oauth1 = None
-
-    def _initialize_session(self):
         self.session = requests.Session()
         self.session.headers.update({"User-Agent": USER_AGENT})
-        self.oauth1 = OAuth1(
-            client_key=ACCESS_TOKEN,
-            client_secret=ACCESS_SECRET,
-            resource_owner_key=CLIENT_ID,
-            resource_owner_secret=CLIENT_SECRET,
+
+    def _get_auth(self):
+        return OAuth1(
+            CONSUMER_KEY,
+            client_secret=CONSUMER_SECRET,
+            resource_owner_key=ACCESS_TOKEN,
+            resource_owner_secret=ACCESS_TOKEN_SECRET,
             decoding=None,
         )
 
     def _make_request(self, method: str, url: str, **kwargs) -> dict:
-        with self.session.request(
-            method=method, url=url, **kwargs, auth=self.oauth1.auth()
-        ) as resp:
-            print(f"Url: {url} Status: {resp.status_code}")
-            if resp.status_code >= 400:
-                print(resp.text)
-                print(resp.json())
-            try:
-                return resp.json()
-            except Exception as e:
-                print(e)
-                return {}
-
-    def _read_file_bytes(self, file: str) -> bytes:
-        with open(file, "rb") as f:
-            filebytes = f.read()
-        return filebytes
-
-    def _is_video_file(self, file: str) -> bool:
-        if get_file_information(file).get("ext") in VIDEO_TYPES:
-            return True
-        else:
-            return False
+        auth = self._get_auth()
+        resp = self.session.request(method=method, url=url, **kwargs, auth=auth)
+        print(f"Url: {url} Status: {resp.status_code}")
+        if resp.status_code >= 400:
+            print(resp.text)
+            print(resp.json())
+        try:
+            return resp.json()
+        except Exception as e:
+            print(e)
+            return {}
 
     def _simple_media_upload(self, file: str) -> str:
         resp = self._make_request(
             method="POST",
             url=ENDPOINTS.get("media_upload"),
-            files={"media": self._read_file_bytes(file)},
+            files={"media": read_file_bytes(file)},
         )
         if "media_id" in resp:
             return str(resp.get("media_id"))
@@ -163,21 +154,9 @@ class API:
         print(f"Status check: {resp}")
         return resp
 
-    def _create_tweet(self, text: str = None, files: Union[list, str] = None):
-        if files:
-            media_ids = []
-            for file in files:
-                mimetype = mimetypes.guess_type(file)[0]
-                if self._is_video_file(file):
-                    media_ids.append(self._chunked_media_upload(file, mimetype))
-                else:
-                    media_ids.append(self._simple_media_upload(file))
-            resp = self._make_request(
-                method="POST",
-                url=ENDPOINTS.get("create_tweet"),
-                json={"text": text, "media": {"media_ids": media_ids}},
-            )
-        else:
-            resp = self._make_request(
-                method="POST", url=ENDPOINTS.get("create_tweet"), json={"text": text}
-            )
+    def post_tweet(self, message: str = None, files: list = None):
+        return Tweet(api_client=self, message=message, files=files).post()
+
+
+# test = API()
+# test.post_tweet(message="TESTING API")

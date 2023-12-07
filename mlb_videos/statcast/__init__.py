@@ -1,3 +1,3 @@
 from .search import Search
 
-__all__ = ["API", "Video"]
+__all__ = ["Search"]
