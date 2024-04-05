@@ -27,7 +27,7 @@ class API:
         self.context = requests.Session()
         self.context.headers.update(DEFAULT_HEADERS)
 
-    def _get(self, **kwargs) -> dict:
+    def get(self, **kwargs) -> dict:
         if "resp_path" in kwargs:
             resp_path = kwargs.get("resp_path")
             kwargs.pop("resp_path")
@@ -50,44 +50,44 @@ class API:
                     if chunk:
                         f.write(chunk)
 
-    def _build_search_url(
-        self,
-        pitch: pd.Series,
-        query_params: list = DEFAULT_PARAMETERS,
-        exclude_params: list = None,
-    ) -> str:
-        query = ""
+    # def _build_search_url(
+    #     self,
+    #     pitch: pd.Series,
+    #     query_params: list = DEFAULT_PARAMETERS,
+    #     exclude_params: list = None,
+    # ) -> str:
+    #     query = ""
 
-        if exclude_params:
-            query_params = [x for x in query_params if x not in exclude_params]
+    #     if exclude_params:
+    #         query_params = [x for x in query_params if x not in exclude_params]
 
-        for param in query_params:
-            param_ref = next(filter(lambda x: x.get("Name") == param, QUERY_PARAMETERS))
-            param_val = pitch.get(param_ref["Ref"], {})
-            if param == "date":
-                param_val = param_val.strftime(DATE_FORMAT)
-            eq_sep = "=" * param_ref["EqCt"]
-            sp_pad = r"\"" if param_ref["Type"] == "str" else ""
+    #     for param in query_params:
+    #         param_ref = next(filter(lambda x: x.get("Name") == param, QUERY_PARAMETERS))
+    #         param_val = pitch.get(param_ref["Ref"], {})
+    #         if param == "date":
+    #             param_val = param_val.strftime(DATE_FORMAT)
+    #         eq_sep = "=" * param_ref["EqCt"]
+    #         sp_pad = r"\"" if param_ref["Type"] == "str" else ""
 
-            sparam_str = f"{param_ref['Url']} {eq_sep} [{sp_pad}{param_val}{sp_pad}]"
+    #         sparam_str = f"{param_ref['Url']} {eq_sep} [{sp_pad}{param_val}{sp_pad}]"
 
-            if query == "":
-                query = sparam_str
-            else:
-                query += f" AND {sparam_str}"
+    #         if query == "":
+    #             query = sparam_str
+    #         else:
+    #             query += f" AND {sparam_str}"
 
-        query = f"{query} {QUERY_SUFFIX}"
-        url = (
-            QUERIES.get("search")
-            .get("query")
-            .replace('"query":""', f'"query":"{query}"')
-        )
-        return url
+    #     query = f"{query} {QUERY_SUFFIX}"
+    #     url = (
+    #         QUERIES.get("search")
+    #         .get("query")
+    #         .replace('"query":""', f'"query":"{query}"')
+    #     )
+    #     return url
 
     def _get_feeds(self, clip: dict) -> list:
         feeds = []
         for feed in clip.get("feeds"):
-            for playback in clip.get("playbacks"):
+            for playback in feed.get("playbacks"):
                 if ".mp4" in os.path.basename(playback.get("url")).lower():
                     feeds.append(
                         {
@@ -147,3 +147,7 @@ class API:
             return {**clip_metadata, **clip_feed}
         else:
             return None
+
+
+def download_clip(self, url: str, save_path: str):
+    self._download(url, save_path)

@@ -18,3 +18,6 @@ test_pitch = statcast_df.iloc[0]
 filmroom_client = FilmRoom.API()
 search_plays = filmroom_client.search_plays(test_pitch)
 search_clips = filmroom_client.search_clips(search_plays[0])
+download_clip = filmroom_client.download(
+    search_clips.get("url"), local_path="tests/filmroom/test.mp4"
+)
