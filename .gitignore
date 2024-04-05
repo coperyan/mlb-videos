@@ -29,6 +29,7 @@ projects/*
 #Credentials
 *client_secret.json
 *oauth.json
+credentials/*
 
 #Package Stuff
 mlb_videos.egg-info*
