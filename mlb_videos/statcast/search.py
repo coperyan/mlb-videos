@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 from typing import Union, Tuple
-from mlb_videos.statcast.api import API
+from mlb_videos.statcast.client import API
 
 from mlb_videos._helpers import get_date_range, get_date
 from mlb_videos.statcast._constants import ENDPOINTS

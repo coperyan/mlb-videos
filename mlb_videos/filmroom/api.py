@@ -18,6 +18,7 @@ from mlb_videos.filmroom._constants import QUERY_SUFFIX
 from mlb_videos.filmroom._helpers import (
     build_dict_from_nested_path,
     build_dict_from_nested_path_with_keys,
+    build_search_url,
     choose_feed,
 )
 
@@ -27,7 +28,7 @@ class API:
         self.context = requests.Session()
         self.context.headers.update(DEFAULT_HEADERS)
 
-    def get(self, **kwargs) -> dict:
+    def _get(self, **kwargs) -> dict:
         if "resp_path" in kwargs:
             resp_path = kwargs.get("resp_path")
             kwargs.pop("resp_path")
@@ -104,7 +105,7 @@ class API:
         pitch: pd.Series,
         query_params: list = DEFAULT_PARAMETERS,
     ) -> list:
-        url = self._build_search_url(pitch, query_params)
+        url = build_search_url(pitch, query_params)
         results = self._get(
             url=url,
             headers=QUERIES.get("search").get("headers"),

@@ -1,6 +1,8 @@
 import re
 from mlb_videos._helpers import DotDict
 
+BASE_URL = "https://baseballsavant.mlb.com"
+
 ENDPOINTS = DotDict(
     {
         "search": {

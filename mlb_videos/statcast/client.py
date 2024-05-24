@@ -7,13 +7,15 @@ from tqdm import tqdm
 from typing import Union, Tuple
 
 
+from mlb_videos.statcast._constants import BASE_URL
 from mlb_videos.statcast._constants import ENDPOINTS
 from mlb_videos.statcast._constants import REQUEST_TIMEOUT
 from mlb_videos.statcast._helpers import parse_df
 
+from mlb_videos.statcast.search import Search
+
 
 class API:
-    BASE_URL = "https://baseballsavant.mlb.com"
 
     def __init__(self):
         self.endpoint = None
@@ -42,7 +44,7 @@ class API:
                     progress.update(1)
         print(f"Completed statcast iterations..")
 
-    def _str_to_df(self) -> pd.DataFrame:
+    def _resp_to_df(self) -> pd.DataFrame:
         df_list = []
         for d in self.data:
             df = pd.read_csv(io.StringIO(d))
@@ -72,7 +74,7 @@ class API:
 
         return df
 
-    def run(self, endpoint, urls: list, **kwargs) -> pd.DataFrame:
+    def _get(self, endpoint, urls: list, **kwargs) -> pd.DataFrame:
         self.endpoint = endpoint
         self.urls = [f"{self.BASE_URL}{url}" for url in urls]
         self._concurrent_requests(**kwargs)
@@ -82,3 +84,6 @@ class API:
             print(f"No data found.")
         self.cleanup()
         return df
+
+    def search(self, **kwargs) -> pd.DataFrame:
+        return Search(self, **kwargs)
